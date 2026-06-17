@@ -1,0 +1,21 @@
+山那边 · 九学期 可启动包
+
+1. 解压整个文件夹。
+2. macOS: 双击「启动游戏.command」。
+3. Windows: 双击「启动游戏-Windows.bat」。
+4. 浏览器会打开 http://127.0.0.1:8081/。
+
+运行要求:
+- 电脑需要安装 Node.js 18 或更高版本。
+- 不需要 npm install，本包没有第三方后端依赖。
+
+AI 接口:
+- 后端 API 已包含在 api/ai.js，启动脚本会同时启动前端和 /api/ai。
+- 分享包默认不包含真实 API Key。
+- 如需启用云雾 AI，把 .env.example 复制为 .env.local，并填入:
+  YUNWU_API_KEY=你的云雾Key
+  YUNWU_BASE=https://api3.wlai.vip/v1
+  YUNWU_MODEL=gpt-4o-mini
+
+关闭:
+- 关闭启动脚本打开的终端窗口，即可停止本地服务。

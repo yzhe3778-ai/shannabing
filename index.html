@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>山那边 · 九学期</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+:root{
+  --earth:#D9A441;--rice:#7BA05B;--dusk:#E8853A;--paper:#F5EFE0;
+  --ink:#4A3A2A;--soft:#7a6a55;--night:#2e2620;--card:#FFFDF6;
+  --red:#C25B4E;--blue:#5B7FA0;--gold:#C99A2E;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);overflow:hidden}
+.serif{font-family:"STZhongsong","STSong","SimSun","Noto Serif SC",serif}
+#root{height:100%}
+.app{height:100%;display:flex;flex-direction:column;max-width:920px;margin:0 auto;position:relative;overflow:hidden}
+	.btn{border:none;cursor:pointer;font-family:inherit;background:var(--ink);color:var(--paper);padding:9px 18px;border-radius:8px;font-size:14px;transition:transform .08s,opacity .2s,background .2s}
+	.btn:hover{filter:brightness(1.04)}
+		.btn:focus-visible,.actbtn:focus-visible,.choice:focus-visible,.tcard:focus-visible,.chat-chip:focus-visible,.chat-send:focus-visible,.chat-close:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.warm{background:var(--dusk)}.btn.green{background:var(--rice)}.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.small{padding:5px 12px;font-size:12.5px}
+/* HUD */
+.hud{display:flex;gap:7px;padding:8px 12px;background:var(--night);color:var(--paper);font-size:13px;align-items:center;flex-wrap:wrap}
+.hud .year{font-weight:700;letter-spacing:1px;margin-right:auto}
+.hud .stat{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.08);padding:3px 9px;border-radius:20px}
+.ap-dot{width:9px;height:9px;border-radius:50%;background:var(--dusk);display:inline-block;margin:0 1px}
+.ap-dot.used{background:#5a4f40}
+/* 教室 */
+.stage{flex:1;overflow-y:auto;padding:14px;position:relative;display:flex;flex-direction:column}
+.room-title{text-align:center;font-size:13px;color:var(--soft);margin-bottom:10px}
+.room{background:
+  linear-gradient(rgba(245,239,224,.14),rgba(245,239,224,.34)),
+  url("assets/scene/classroom_topdown.png") center/cover no-repeat;
+  border-radius:16px;padding:64px 10px 16px;box-shadow:inset 0 2px 10px rgba(74,58,42,.15);flex:1;min-height:360px}
+.seatgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 12px;max-width:500px;margin:0 auto}
+.seat{background:rgba(255,253,246,.82);backdrop-filter:blur(2px);border-radius:12px;padding:5px 3px 4px;text-align:center;box-shadow:0 4px 12px rgba(46,38,32,.18);cursor:grab;border:2px solid rgba(255,253,246,.5);transition:transform .12s,border-color .12s;position:relative;touch-action:none}
+.seat.dragging{opacity:.5}
+.seat.over{border-color:var(--dusk);transform:scale(1.05)}
+.seat.swapmode{border-color:var(--blue);animation:pulse 1s infinite}
+@keyframes pulse{50%{border-color:var(--earth)}}
+.seat .nm{font-size:12.5px;font-weight:600;margin-top:3px}
+.seat .tg{font-size:9px;color:var(--soft)}
+.seat .gone{opacity:.35}
+.podium{text-align:center;color:var(--soft);font-size:12px;margin-top:12px;letter-spacing:4px}
+/* 行动栏 */
+.actionbar{display:flex;gap:6px;padding:8px 10px;background:var(--card);border-top:1px solid #e3d8bf;flex-wrap:wrap;justify-content:center}
+	.actbtn{flex:1;min-width:72px;background:var(--paper);border:1.5px solid #e0d4ba;border-radius:10px;padding:7px 4px;text-align:center;cursor:pointer;font-family:inherit;transition:transform .1s,border-color .1s,background .2s}
+.actbtn:active{transform:translateY(1px)}
+.actbtn:disabled{opacity:.4;cursor:not-allowed}
+	.actbtn .ic{font-size:19px;display:block;height:24px}.actbtn .ic img{width:24px;height:24px;object-fit:contain}.actbtn .lb{font-size:11.5px;display:block;margin-top:1px}
+	.actbtn.go{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+	/* 对话 */
+	.dlg-wrap{flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-height:0}
+	.dlg-scene{flex:1;display:flex;align-items:center;justify-content:center;min-height:220px;padding:20px 0 16px;border-radius:16px;position:relative;overflow:hidden;background:#eadfc8 center/cover no-repeat;box-shadow:inset 0 2px 12px rgba(46,38,32,.2)}
+	.dlg-scene:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,239,224,.08),rgba(46,38,32,.22));z-index:0}
+	.portrait{width:min(50vw,230px);height:min(38vh,320px);min-height:220px;border-radius:16px;background:linear-gradient(#fffdf6,#f1e7cf);box-shadow:0 8px 22px rgba(74,58,42,.22);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border:1px solid rgba(74,58,42,.16);position:relative;z-index:1}
+.qq-avatar{display:block;border-radius:12px;object-fit:cover;background:#f5efe0;box-shadow:0 1px 4px rgba(46,38,32,.14)}
+.portrait-img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom}
+.avatar-fallback{display:block}
+.dlg-box{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:13px 15px 15px;box-shadow:4px 4px 0 rgba(74,58,42,.22);min-height:104px}
+.dlg-name{display:inline-block;background:var(--ink);color:var(--paper);font-size:13px;padding:3px 13px;border-radius:8px;margin-bottom:7px;letter-spacing:1px}
+.dlg-name.mc{background:var(--dusk)}
+	.dlg-text{font-size:15px;line-height:1.8;white-space:pre-wrap}
+	.dlg-text.ai{color:#3a2c1c}
+	.dlg-hint{font-size:11px;color:var(--soft);text-align:right;margin-top:6px}
+	.dlg-tools{text-align:right;margin-bottom:4px}
+	.dlg-progress{float:right;font-size:11px;color:var(--soft);padding-top:4px}
+	.choices{display:flex;flex-direction:column;gap:8px;margin-top:11px}
+	.choice{background:var(--paper);border:1.5px solid var(--ink);border-radius:10px;padding:9px 13px;cursor:pointer;font-size:14px;text-align:left;font-family:inherit}
+	.choice:active{background:#efe5cd}
+	.free-reply{display:flex;gap:8px;margin-top:10px;align-items:center}
+	.free-reply input{flex:1;border:1.5px solid #d8cab0;border-radius:10px;background:#fffaf0;color:var(--ink);padding:9px 11px;font:inherit;font-size:13px;min-width:0}
+		.free-reply input:focus{outline:2px solid rgba(201,154,46,.35);border-color:var(--gold)}
+		.free-reply .btn{white-space:nowrap}
+		.memory-chip{font-size:10.5px;color:var(--soft);margin-left:6px}
+			/* 聊天框：私聊/家访专用，VN海报式黑白网点风格 */
+			.chat-stage{padding:0;overflow:hidden;background:#e9e9e5;color:#f7f7f2;isolation:isolate}
+			.chat-stage:before{content:"";position:absolute;inset:0;z-index:0;background-image:radial-gradient(#151515 1px,transparent 1.35px),linear-gradient(90deg,rgba(255,255,255,.62),rgba(255,255,255,.16) 36%,rgba(255,255,255,.04) 68%),var(--chat-scene);background-size:13px 13px,100% 100%,cover;background-position:0 0,center,center;filter:grayscale(1) contrast(1.16);opacity:.96}
+			.chat-stage:after{content:"";position:absolute;inset:-8% -12%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 15% 74%,rgba(0,0,0,.78) 0 16%,transparent 34%),radial-gradient(ellipse at 73% 58%,rgba(0,0,0,.48) 0 12%,transparent 30%),linear-gradient(174deg,transparent 0 42%,rgba(0,0,0,.62) 43% 61%,transparent 62%),linear-gradient(90deg,rgba(0,0,0,.08),transparent 30% 78%,rgba(0,0,0,.18));mix-blend-mode:multiply}
+			.chat-shell{flex:1;min-height:0;position:relative;z-index:2;display:flex;flex-direction:column;overflow:hidden;background:transparent;border:0;border-radius:0;box-shadow:none}
+			.chat-live-portrait{position:absolute;left:max(-28px,calc(50% - 470px));bottom:78px;z-index:2;width:clamp(210px,38vw,345px);height:min(73vh,560px);display:flex;align-items:flex-end;justify-content:center;pointer-events:none;filter:drop-shadow(0 0 0 #fff) drop-shadow(4px 0 0 #fff) drop-shadow(-4px 0 0 #fff) drop-shadow(0 4px 0 #fff) drop-shadow(0 -4px 0 #fff) drop-shadow(10px 16px 0 rgba(0,0,0,.72))}
+			.chat-live-portrait .portrait-img{width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:grayscale(.28) contrast(1.1) saturate(.85)}
+			.chat-live-portrait .avatar-fallback{width:180px;height:180px;background:#f7f7f2;border:4px solid #111;border-radius:20px}
+			.chat-head{position:absolute;top:12px;right:14px;z-index:5;display:flex;align-items:center;gap:10px;min-width:min(330px,58vw);max-width:calc(100% - 24px);padding:8px 10px;background:rgba(12,12,12,.62);border:1.5px solid rgba(255,255,255,.72);box-shadow:8px 8px 0 rgba(0,0,0,.18);backdrop-filter:blur(6px)}
+			.chat-head .qq-avatar{border:1.5px solid rgba(255,255,255,.75);border-radius:4px;filter:grayscale(.2) contrast(1.08)}
+			.chat-head-main{flex:1;min-width:0}.chat-title{font-size:17px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 0 rgba(0,0,0,.45)}.chat-sub{font-size:11px;color:rgba(255,255,255,.68);margin-top:2px}
+			.chat-close{border:none;background:rgba(255,255,255,.12);color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:4px 7px;border-radius:4px}
+			.chat-close:active{background:rgba(255,255,255,.24)}
+			.chat-messages{position:absolute;left:clamp(168px,32vw,320px);right:18px;top:72px;bottom:178px;z-index:3;min-height:0;overflow-y:auto;padding:0 2px 10px;display:flex;flex-direction:column;justify-content:flex-end;gap:9px;background:transparent}
+			.chat-messages::-webkit-scrollbar{width:5px}.chat-messages::-webkit-scrollbar-thumb{background:rgba(0,0,0,.38);border-radius:10px}
+			.chat-row{display:flex;align-items:flex-end;gap:8px;max-width:min(620px,100%)}
+			.chat-row.mine{align-self:flex-end;flex-direction:row-reverse}
+			.chat-row.other{align-self:flex-start}
+			.chat-avatar{display:none}
+			.chat-bubble{border-radius:2px;padding:9px 12px;line-height:1.55;font-size:14.5px;font-weight:650;word-break:break-word;text-shadow:0 1px 0 rgba(0,0,0,.42);box-shadow:7px 7px 0 rgba(0,0,0,.18);backdrop-filter:blur(4px)}
+			.chat-row.other .chat-bubble{background:rgba(28,28,28,.58);border:1.5px solid rgba(255,255,255,.54);color:#fff}
+			.chat-row.mine .chat-bubble{background:rgba(0,0,0,.72);border:1.5px solid rgba(255,255,255,.72);color:#fff}
+			.chat-speaker{display:inline-block;font-size:11px;font-weight:800;color:#111;background:rgba(255,255,255,.86);padding:1px 8px;margin-bottom:5px;text-shadow:none}.chat-row.mine .chat-speaker{color:#111}
+			.chat-typing{display:inline-flex;gap:4px;align-items:center;height:18px}
+			.chat-typing i{width:5px;height:5px;border-radius:50%;background:#fff;opacity:.55;animation:typing 1s infinite}
+			.chat-typing i:nth-child(2){animation-delay:.15s}.chat-typing i:nth-child(3){animation-delay:.3s}
+			@keyframes typing{50%{transform:translateY(-3px);opacity:1}}
+			.chat-composer{position:absolute;left:clamp(158px,30vw,318px);right:14px;bottom:14px;z-index:4;padding:13px 14px 14px;background:rgba(12,12,12,.68);border:2px solid rgba(255,255,255,.76);box-shadow:10px 10px 0 rgba(0,0,0,.22);backdrop-filter:blur(7px)}
+			.chat-suggestions{position:absolute;left:50%;bottom:calc(100% + 13px);transform:translateX(-50%);width:min(340px,82%);display:flex;flex-direction:column;gap:9px;overflow:visible;padding:0}
+			.chat-chip{width:100%;border:1.5px solid rgba(255,255,255,.68);border-radius:2px;background:rgba(18,18,18,.62);color:#fff;padding:8px 12px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;white-space:normal;text-align:center;text-shadow:0 2px 0 rgba(0,0,0,.38);box-shadow:6px 6px 0 rgba(0,0,0,.18);transition:transform .12s,background .18s,border-color .18s}
+			.chat-chip:hover{background:rgba(0,0,0,.76);border-color:#fff}
+			.chat-chip:active{transform:translateY(1px)}
+			.chat-input-row{display:flex;gap:8px;align-items:center}
+			.chat-input-row input{flex:1;min-width:0;border:1.5px solid rgba(255,255,255,.72);border-radius:2px;background:rgba(255,255,255,.88);color:#111;padding:10px 12px;font:inherit;font-size:14px;font-weight:650}
+			.chat-input-row input:focus{outline:2px solid rgba(255,255,255,.42);border-color:#fff}
+			.chat-send{border:none;border-radius:2px;background:#fff;color:#111;padding:10px 14px;font:inherit;font-size:13px;font-weight:850;cursor:pointer;white-space:nowrap}
+			.chat-send:disabled{opacity:.45;cursor:not-allowed}
+			.settle-card{border:1.5px solid rgba(255,255,255,.72);border-radius:2px;background:rgba(12,12,12,.7);padding:12px;box-shadow:7px 7px 0 rgba(0,0,0,.22);color:#fff}
+			.settle-card h4{font-size:15px;margin-bottom:5px;color:#fff}
+			.settle-card p{font-size:12.5px;line-height:1.55;color:rgba(255,255,255,.82);margin:4px 0}
+			.settle-tags{display:flex;gap:5px;flex-wrap:wrap;margin:7px 0}
+			.settle-tags span{font-size:10.5px;border-radius:2px;background:rgba(255,255,255,.86);color:#111;padding:3px 8px;font-weight:800}
+			.fx-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px;margin:8px 0}
+			.fx-row{border-radius:2px;background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.32);color:#111;padding:7px 8px;font-size:12px;display:flex;justify-content:space-between;gap:6px}
+			.fx-row b{font-weight:800;color:#111}
+			.fx-row .neg{color:#333}
+			.settle-actions{display:flex;gap:8px;margin-top:10px}
+			.settle-actions .btn{flex:1}
+/* 弹窗 */
+.modal-bg{position:absolute;inset:0;background:rgba(46,38,32,.55);display:flex;align-items:center;justify-content:center;z-index:40;padding:14px}
+	.modal{background:var(--card);border-radius:16px;padding:18px;max-width:520px;width:100%;max-height:86%;overflow-y:auto}
+	.modal h3{font-size:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+	.shop-modal{background:linear-gradient(rgba(255,253,246,.94),rgba(255,253,246,.9)),url("assets/scene/shop.png") center/cover no-repeat}
+	.log-modal{background:linear-gradient(rgba(255,253,246,.9),rgba(255,253,246,.94)),url("assets/ui/log_book.png") center top/cover no-repeat}
+	.shop-item{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:8px;border:1px solid rgba(122,106,85,.18);border-radius:12px;background:rgba(255,253,246,.78);box-shadow:0 2px 8px rgba(74,58,42,.08)}
+	.shop-icon{width:52px;height:46px;object-fit:contain;flex:0 0 auto}
+	.shop-item .info{flex:1}.shop-item .nm{font-size:14px;font-weight:600}.shop-item .ds{font-size:11.5px;color:var(--soft)}
+.row{display:flex;align-items:center;gap:8px}
+.bar{height:8px;background:#eadfc8;border-radius:4px;overflow:hidden;flex:1}
+.bar i{display:block;height:100%;border-radius:4px}
+	.stu-row{display:flex;align-items:center;gap:9px;padding:8px;border-radius:10px;cursor:pointer}
+	.stu-row:active{background:var(--paper)}
+	.visit-modal{background:linear-gradient(rgba(255,253,246,.92),rgba(245,239,224,.92)),url("assets/scene/road.png") center/cover no-repeat}
+	.visit-note{font-size:12px;color:var(--soft);line-height:1.55;margin:-3px 0 12px}
+	.visit-map{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+	.house-card{border:1.5px solid rgba(74,58,42,.2);border-radius:12px;background:rgba(255,253,246,.86);padding:10px 8px 9px;text-align:left;font:inherit;color:var(--ink);cursor:pointer;min-height:142px;box-shadow:0 5px 14px rgba(46,38,32,.13);transition:transform .12s,border-color .15s,background .15s}
+	.house-card:hover{border-color:var(--dusk);background:rgba(255,253,246,.96);transform:translateY(-1px)}
+	.house-card:active{transform:translateY(1px)}
+	.house-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+	.house-icon{width:38px;height:34px;position:relative;flex:0 0 38px}
+	.house-icon:before{content:"";position:absolute;left:4px;right:4px;bottom:0;height:22px;background:#f5efe0;border:2px solid var(--ink);border-top:0;box-shadow:3px 3px 0 rgba(74,58,42,.16)}
+	.house-icon:after{content:"";position:absolute;left:4px;top:1px;width:28px;height:28px;background:var(--dusk);border:2px solid var(--ink);transform:rotate(45deg);clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+	.house-door{position:absolute;left:15px;bottom:0;width:9px;height:15px;background:var(--ink);z-index:2;border-radius:4px 4px 0 0}
+	.house-card:nth-child(3n+1) .house-icon:after{background:var(--rice)}
+	.house-card:nth-child(3n+2) .house-icon:after{background:var(--earth)}
+	.house-name{font-size:14px;font-weight:800}
+	.house-meta{font-size:10.5px;color:var(--soft);margin-top:1px}
+	.house-family{font-size:11.5px;line-height:1.45;color:#5d4d3d;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:33px}
+	.house-bars{margin-top:8px;display:grid;gap:4px}
+	.house-mini{display:grid;grid-template-columns:48px 1fr 24px;align-items:center;gap:5px;font-size:10.5px;color:var(--soft)}
+	.house-mini i{height:5px;border-radius:10px;background:#e2d4ba;overflow:hidden}
+	.house-mini i:before{content:"";display:block;height:100%;width:var(--w);background:var(--c)}
+	@media(max-width:540px){
+	  .visit-map{grid-template-columns:repeat(2,1fr);gap:8px}
+	  .house-card{min-height:134px;padding:9px 7px}
+	}
+	.status-txt{font-size:12px;color:var(--red);line-height:1.4}
+.attr-line{display:flex;align-items:center;gap:8px;font-size:12px;margin:5px 0}
+.attr-line span{width:56px;color:var(--soft)}
+.attr-line b{width:34px;text-align:right;font-size:12px}
+/* 小游戏 */
+.mini{flex:1;position:relative;background:linear-gradient(#cfe3ee,#f0dfb6);border-radius:14px;overflow:hidden;touch-action:none}
+.coin{position:absolute;width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe89a,#d9a441);border:2px solid #b07f1e;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+.mini-hud{position:absolute;top:8px;left:0;width:100%;display:flex;justify-content:space-between;padding:0 12px;font-size:14px;font-weight:700;color:var(--ink);z-index:2}
+/* 标题/结局 */
+.titlepage{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(#bcd8e8 0%,#f0dfb6 55%,#e8c98a 100%);position:relative;overflow:hidden;padding:20px}
+.titlepage h1{font-size:50px;letter-spacing:12px;text-shadow:2px 3px 0 rgba(255,255,255,.5);z-index:2}
+.titlepage .tag{color:var(--soft);letter-spacing:4px;font-size:13px;margin-bottom:18px;z-index:2}
+.title-mtn{position:absolute;bottom:0;left:0;width:100%;z-index:1}
+.toast{position:absolute;top:62px;left:50%;transform:translateX(-50%);background:var(--night);color:var(--paper);padding:8px 18px;border-radius:20px;font-size:13px;z-index:60;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:88%;text-align:center;animation:pop .25s}
+@keyframes pop{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1;transform:translate(-50%,0)}}
+.spinner{width:30px;height:30px;border:3px solid #e3d8bf;border-top-color:var(--dusk);border-radius:50%;animation:spin .8s linear infinite;margin:18px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+	.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:8px}
+	.tcard{background:var(--card) center/cover no-repeat;border-radius:12px;padding:15px 13px 13px;cursor:pointer;border:1px solid rgba(74,58,42,.16);box-shadow:0 4px 14px rgba(74,58,42,.14);position:relative;overflow:hidden;min-height:188px}
+	.tcard:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,253,246,.34),rgba(255,253,246,.88) 42%,rgba(255,253,246,.96));z-index:0}
+	.tcard>*{position:relative;z-index:1}
+	.tcard:active{border-color:var(--earth);transform:translateY(1px)}
+	.tcard .cat{font-size:11px;padding:2px 8px;border-radius:10px;color:#fff;display:inline-block;margin-bottom:7px}
+	.tcard h4{font-size:14px;margin-bottom:5px}.tcard p{font-size:12px;color:var(--soft);line-height:1.5;min-height:34px}
+	.tcard .fx{font-size:11.5px;color:var(--soft);margin-top:8px}
+	.settle-scene{min-height:230px;border-radius:16px;padding:34px 14px 18px;background:#eadfc8 center/cover no-repeat;display:flex;align-items:flex-end;box-shadow:inset 0 2px 12px rgba(46,38,32,.22);position:relative;overflow:hidden}
+	.settle-scene:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,239,224,.1),rgba(46,38,32,.36));}
+	.settle-scene .dlg-box{position:relative;z-index:1}
+.endbox{background:rgba(255,255,255,.88);border-radius:14px;padding:20px;max-width:360px;margin:0 auto;font-size:14px;line-height:2;z-index:2}
+	@media(max-height:700px){
+	  .stage{padding:10px}
+	  .chat-stage{padding:0}
+	  .room{padding-top:48px;min-height:320px}
+		  .seatgrid{gap:7px 10px}
+		  .seat{padding:4px 3px 3px}
+		  .dlg-scene{min-height:190px;padding-top:12px}
+		  .portrait{min-height:190px}
+		}
+	@media(max-width:540px){
+	  .chat-head{top:10px;right:10px;min-width:0;width:calc(100% - 20px);box-shadow:5px 5px 0 rgba(0,0,0,.16)}
+	  .chat-live-portrait{left:-48px;bottom:122px;width:205px;height:58vh;opacity:.96}
+	  .chat-messages{left:112px;right:10px;top:72px;bottom:188px;gap:7px}
+	  .chat-bubble{font-size:13px;padding:8px 9px;box-shadow:5px 5px 0 rgba(0,0,0,.16)}
+	  .chat-composer{left:10px;right:10px;bottom:10px;padding:11px;box-shadow:7px 7px 0 rgba(0,0,0,.2)}
+	  .chat-suggestions{width:min(330px,90%);gap:7px;bottom:calc(100% + 9px)}
+	  .chat-chip{font-size:13px;padding:7px 10px}
+	  .chat-input-row input{font-size:13px;padding:9px 10px}
+	  .chat-send{padding:9px 12px}
+	}
+	</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* =================================================================
+   数据层 · DATA — 全部可编辑的内容列表（改这里改内容，不碰规则）
+   ================================================================= */
+window.GAME_DATA = {
+	  TERMS: 9, AP: 5, START_FUND: 0, WIN: 70, MAX_CHAT_MESSAGES: 30,
+  FAM_DRIFT: 3, DROP_FAM: 80, DROP_TRUST: 25,
+
+  TALENTS: {
+    art:{name:'绘画',ico:'🎨'}, sports:{name:'体育',ico:'⚽'},
+    music:{name:'音乐',ico:'🎵'}, academic:{name:'读书',ico:'📚'}, none:{name:'',ico:''}
+  },
+
+	  /* 商店：fx 作用于指定学生；qingyun=直接把学习设为70；onlyTalent=仅已显示天赋者可买 */
+	  SHOP: [
+    {id:'book',  name:'习题册',   price:50,  fx:{study:10,press:5},  desc:'学习+10 压力+5', note:'虽然总让学生厌恶,但确实有用'},
+    {id:'kfc',   name:'KFC一顿',  price:50,  fx:{press:-20,interest:2}, desc:'压力-20 兴趣+2', note:'跟着老师走竟然还有KFC吃!'},
+    {id:'qingyun',name:'送你平步青云',price:500,qingyun:true,onlyTalent:true,desc:'学习直接=70 走出大山',note:'明明有天赋,那就不要埋没了'},
+    {id:'ration',name:'香喷喷口粮', price:30, fx:{fam:-20}, desc:'家庭压迫-20', note:'有人送免费口粮,谁还下地干活'}
+	  ],
+
+	  SCENES: {
+	    classroom:'教室', office:'办公室', field:'田埂', road:'山路',
+	    playground:'操场', shop:'集市小店', ending_office:'档案桌'
+	  },
+
+  /* 任务卡：每学期3选1，作用全班（学习经兴趣修正） */
+  CARDS: [
+    {id:'c_study1',cat:'study', title:'集中突击',  desc:'今天加一套模拟卷,谁也别想溜。', fx:{study:7,interest:-2,press:4}},
+    {id:'c_study2',cat:'study', title:'错题本行动',desc:'每人一本错题本,老师挨个批。',     fx:{study:6,interest:-1,press:3}},
+    {id:'c_study3',cat:'study', title:'县城远程课',desc:'借来一台旧电脑,信号时断时续。',   fx:{study:8,press:5}},
+    {id:'c_int1', cat:'interest',title:'户外写生',  desc:'带孩子们画山。山就在那儿。',      fx:{interest:5}},
+    {id:'c_int2', cat:'interest',title:'纸飞机大赛',desc:'谁的飞机飞得远?',               fx:{interest:5}},
+    {id:'c_int3', cat:'interest',title:'学唱流行歌',desc:'跑调不要紧,敢唱就行。',          fx:{interest:4,press:-3}},
+    {id:'c_care1',cat:'care',   title:'班级大扫除',desc:'擦玻璃扫院子,心也亮堂。',        fx:{press:-6,trust:4}},
+    {id:'c_care2',cat:'care',   title:'做顿午饭',  desc:'白菜炖粉条,管饱。',              fx:{press:-6,trust:4,interest:1}}
+  ],
+  CATS: {study:{name:'学习强化',color:'#C25B4E'},interest:{name:'兴趣培养',color:'#7BA05B'},care:{name:'生活关怀',color:'#E8853A'}},
+
+	  /* 学期结算时演出的本地事件库（AI失败兜底，也是日常）。{S}=随机在校学生 */
+	  EVENTS: [
+	    {scene:'classroom_topdown',t:'清晨你到校,老远听见教室里的读书声——没人要求,娃们自己开始了早读,山谷里全是回音。'},
+	    {scene:'classroom_topdown',t:'{S}的午饭只有一个红薯。同桌默默把自己的馍掰了一半过去,谁也没说话。'},
+	    {scene:'road',t:'放学下雨,全班就三把伞。娃们自动组成"护送队",一把伞下挤四个脑袋。'},
+	    {scene:'office',t:'你批作业到深夜。第二天窗台上多了一盏擦得锃亮的煤油灯,灯芯都修剪好了。'},
+	    {scene:'classroom_topdown',t:'老陈端着搪瓷缸在窗外站了一节课。下课丢下一句:"板书太挤,娃儿抄不赢。"就走了。'},
+	    {scene:'office',t:'{S}把高年级的课本借来啃,书页边写满歪歪扭扭的批注。'},
+	    {scene:'playground',t:'县文化馆下乡采风,在墙上娃们的画前停下了脚步,留了联系方式。'},
+	    {scene:'road',t:'夜里下大雨,{S}家那条山路塌了一截,{S}绕了两小时山路来上学,裤腿全是泥。'}
+	  ],
+
+	  INTRO_DIALOGUE: {
+	    who:'老陈', portraitId:'chen', scene:'office', mc:false, kind:'intro', opts:null,
+	    lead:'老陈把搪瓷缸放在桌角:"你还是回来了。"',
+	    lines:[
+	      {speaker:'老陈', portraitId:'chen', text:'你还是回来了。'},
+	      {speaker:'老师', portraitId:'teacher', mc:true, text:'山路比以前窄,校门倒还是那个样子。'},
+	      {speaker:'老陈', portraitId:'chen', text:'窄的是路,不是娃的命。'},
+	      {speaker:'老师', portraitId:'teacher', mc:true, text:'我怕我带不好他们。'},
+	      {speaker:'老陈', portraitId:'chen', text:'怕就对了。怕,才晓得轻重。'},
+	      {speaker:'老陈', portraitId:'chen', text:'九个娃,九个家。你先记住他们的名字。'},
+	      {speaker:'老师', portraitId:'teacher', mc:true, text:'然后呢?'},
+	      {speaker:'老陈', portraitId:'chen', text:'然后一学期一学期地熬,看谁能翻过山。'}
+	    ]
+	  },
+
+  /* 9名学生：talent天赋, shown初始是否显示, fam家庭压迫初值, trust信任初值,
+     per性格简介(可被私聊/家访更新), family家庭矛盾(家访用), tag换位性格标签 */
+  STUDENTS: [
+    {id:'damao',  name:'大毛', talent:'art',     shown:true,  fam:25, trust:10,
+      per:'有才华但不自知,画画时整个人都在发光', family:'家里盼他学门手艺早点挣钱,觉得画画是不务正业', tag:'静'},
+    {id:'xiaohua',name:'小花', talent:'art',     shown:false, fam:40, trust:8,
+      per:'敏感纤细,像随时要缩回壳里的蜗牛,但纸上的世界灿烂得不像话', family:'家里觉得女娃读那么多书没用,不如早点帮衬家里', tag:'敏感'},
+    {id:'chouwa', name:'丑娃', talent:'none',    shown:false, fam:30, trust:10,
+      per:'开朗憨厚,像一团滚动的火球,永远在跑永远在笑', family:'爹娘只盼他别惹事,对读书不抱期望', tag:'闹'},
+    {id:'xingxing',name:'星星',talent:'music',   shown:false, fam:35, trust:9,
+      per:'沉静,像夜里的星星不声不响但一直在那里', family:'家里管得严,只许念书不许"瞎唱"', tag:'静'},
+    {id:'mumu',   name:'木木', talent:'academic',shown:false, fam:45, trust:7,
+      per:'呆萌,活在自己的慢节奏里,对什么都好奇但反应慢半拍', family:'父母外出打工,他带着弟妹,常常顾不上学习', tag:'静'},
+    {id:'danzai', name:'蛋仔', talent:'sports',  shown:false, fam:30, trust:11,
+      per:'小太阳,天生乐天派,班里的气氛担当', family:'家境尚可,但爹娘觉得"够用就行,读高中干啥"', tag:'暖'},
+    {id:'goushen',name:'狗剩', talent:'sports',  shown:false, fam:35, trust:10,
+      per:'沉默但坚定,像一块被山风吹硬的石头', family:'农忙时家里要他回去搭手,常被叫去干活', tag:'静'},
+    {id:'ahua',   name:'阿花', talent:'art',     shown:false, fam:55, trust:8,
+      per:'安静敏感,像墙角悄悄开的花,眼神里有渴望但不敢说', family:'重男轻女,爹想让她回家插秧,还隐隐提过娃娃亲', tag:'敏感'},
+    {id:'matui',  name:'马腿', talent:'academic',shown:false, fam:30, trust:12,
+      per:'野性热乎,像山里撒欢的猴崽,但讲义气时特别认真', family:'爹娘拿他没办法,只盼他别学坏', tag:'闹'}
+  ],
+
+  /* 私聊本地模板（AI失败兜底）。每人一段引子 + 3选项(fx作用于该生);
+     unlock=本次必解锁天赋(否则按50%概率) */
+	  CHAT: {
+    damao:{lead:'大毛把速写本往身后藏了藏:"老师……我这画,能当饭吃吗?"',
+      opts:[{t:'能。但先把字也练好,路要走宽',fx:{interest:2,study:1,trust:2}},
+            {t:'老师当年也这么问过你陈校长',fx:{trust:4,interest:1},unlock:true},
+            {t:'不一定,但值得试',fx:{interest:1,trust:1}}]},
+    xiaohua:{lead:'小花攥着半截彩笔,声音细得像蚊子:"我画的……是不是很幼稚?"',
+      opts:[{t:'蹲下来认真看完每一页',fx:{trust:4,interest:2},unlock:true},
+            {t:'把她的画贴在教室墙上',fx:{interest:3,press:-3}},
+            {t:'幼稚怕什么,老师也爱看',fx:{trust:2,interest:1}}]},
+    chouwa:{lead:'丑娃抱着破足球咧嘴:"老师!我是不是跑得比谁都快?"',
+      opts:[{t:'快,但课本也别落下',fx:{interest:1,study:1}},
+            {t:'陪他在操场跑两圈',fx:{trust:5,press:-5}},
+            {t:'你呀,得找到自己真正喜欢的',fx:{trust:2,interest:1}}]},
+    xingxing:{lead:'星星扶了扶缠着胶布的眼镜,小声说:"老师,我唱歌……我爹说没出息。"',
+      opts:[{t:'唱给老师听一句',fx:{interest:3,trust:3},unlock:true},
+            {t:'有出息没出息,先把书念好再说',fx:{study:2,interest:-1}},
+            {t:'喜欢就偷偷唱,别丢了',fx:{trust:2,interest:1}}]},
+    mumu:{lead:'木木慢吞吞掏出颗光滑的石头:"老师,这是运气石……分你一半运气。"',
+      opts:[{t:'郑重收下,谢谢他',fx:{trust:4,press:-3}},
+            {t:'问问他最近为啥总走神',fx:{trust:3,fam:-3}},
+            {t:'运气要配努力才灵',fx:{study:2,interest:1}}]},
+    danzai:{lead:'蛋仔从兜里摸出半块红薯干:"老师吃!笑一笑,十年少!"',
+      opts:[{t:'笑着接过,陪他贫两句',fx:{trust:4,press:-4}},
+            {t:'你这乐天劲儿,得用在正地方',fx:{interest:2,study:1}},
+            {t:'问他是不是在替谁开心',fx:{trust:3}}]},
+    goushen:{lead:'狗剩低着头:"老师,农忙了……我可能要请几天假。"',
+      opts:[{t:'我去跟你家说,书不能停',fx:{fam:-6,trust:3}},
+            {t:'白天上课,放学我陪你回去帮忙',fx:{trust:5,press:-2}},
+            {t:'先回去,功课老师给你补',fx:{trust:2,study:1}}]},
+    ahua:{lead:'阿花绞着褪色的红头绳,半天才开口:"老师……女娃,真的能走出去吗?"',
+      opts:[{t:'能。老师当年也是被人这么拉出来的',fx:{trust:5,interest:2},unlock:true},
+            {t:'你想走,老师就替你扛着',fx:{trust:4,fam:-4}},
+            {t:'先把书念好,路自己会出现',fx:{study:2,interest:1}}]},
+    matui:{lead:'马腿龇着缺角的门牙凑过来:"老师,听说你当年比我还皮?"',
+      opts:[{t:'比你皮十倍,所以我懂你',fx:{trust:5,interest:1}},
+            {t:'皮可以,但聪明别浪费',fx:{study:2,interest:1},unlock:true},
+            {t:'讲义气是好事,别用错地方',fx:{trust:3}}]}
+	  },
+
+	  /* 私聊/家访结算结果库：AI 只返回 outcomeTag，本地规则决定数值，方便平衡 */
+	  CHAT_OUTCOMES: {
+	    trust_built:{title:'信任建立',desc:'学生愿意多说一点真心话。',fx:{trust:4,press:-2},tags:['信任','倾听']},
+	    pressure_relief:{title:'压力松动',desc:'学生把压在心里的事说出来了。',fx:{press:-7,trust:2},tags:['压力','安抚']},
+	    study_confidence:{title:'学习信心',desc:'学生相信自己可以慢慢学会。',fx:{study:4,interest:1,press:-1},tags:['学习','信心']},
+	    interest_rekindled:{title:'兴趣被点亮',desc:'学生重新意识到自己喜欢的东西。',fx:{interest:3,trust:1},tags:['兴趣','好奇']},
+	    family_disclosure:{title:'说出家事',desc:'学生透露了家里的具体困难。',fx:{fam:-3,trust:3,press:-2},tags:['家庭','求助']},
+	    discipline_focus:{title:'约定行动',desc:'学生接受了一个具体的小目标。',fx:{study:3,trust:1,press:1},tags:['计划','行动']},
+	    emotional_support:{title:'情绪托住',desc:'学生感到自己没有被否定。',fx:{press:-5,trust:4},tags:['共情','安全']},
+	    talent_seen:{title:'天赋显现',desc:'学生的潜在天赋被老师看见。',fx:{interest:2,study:1,trust:2},unlock:true,tags:['天赋','认可']}
+	  },
+
+	  VISIT_OUTCOMES: {
+	    family_understood:{title:'家长松动',desc:'家长愿意重新考虑孩子的读书问题。',fx:{fam:-8,trust:2},tags:['家庭','说服']},
+	    burden_reduced:{title:'负担减轻',desc:'现实困难有了可以执行的缓冲办法。',fx:{fam:-6,press:-4,trust:2},tags:['减负','办法']},
+	    study_agreement:{title:'读书约定',desc:'家长同意给孩子一段稳定学习时间。',fx:{fam:-4,study:3,trust:2},tags:['约定','学习']},
+	    family_trust:{title:'家庭信任',desc:'家长开始相信老师不是空口劝人。',fx:{fam:-5,trust:4},tags:['信任','沟通']},
+	    resource_plan:{title:'资源方案',desc:'老师给出了口粮、时间或补课等具体安排。',fx:{fam:-6,study:2,press:-2},tags:['资源','执行']},
+	    child_voice:{title:'孩子发声',desc:'孩子第一次把自己的想法说给家里听。',fx:{fam:-5,trust:3,interest:1},tags:['表达','家庭']}
+	  },
+
+	  /* 家访本地模板（AI失败兜底）。lead=见到家长的开场, 3选项(fx含fam家庭压迫) */
+	  VISIT: {
+	    _default:{
+	      scene:'road',
+	      lead:'你推着那辆破自行车到了{S}家。家长搓着手:"老师,娃读书这事……我们也拿不准。"',
+	      opts:[{t:'讲那个田埂上男孩的故事',fx:{fam:-9,trust:3}},
+	            {t:'摆政策:义务教育不能断',fx:{fam:-5}},
+	            {t:'先听家长把难处说完',fx:{fam:-4,trust:4}}]},
+	    ahua:{scene:'field',lead:'阿花家的田埂上,她爹蹲着抽旱烟:"老师,女娃读那么多书做啥子?"',
+	      opts:[{t:'"很多年前有个男孩也蹲在这条田埂上……"',fx:{fam:-12,trust:4}},
+	            {t:'当场算一笔"读书改命"的账',fx:{fam:-7}},
+	            {t:'答应帮衬农活,换她继续上学',fx:{fam:-6,trust:3,press:-3}}]},
+	    mumu:{scene:'office',lead:'木木家只有他和弟妹。墙上贴着父母打工的地址。',
+	      opts:[{t:'让木木午休时在办公室补觉',fx:{trust:4,press:-5}},
+	            {t:'帮他申请困难补助',fx:{fam:-8,study:1}},
+	            {t:'组织同学轮流帮他带弟妹',fx:{fam:-5,trust:4}}]},
+	    goushen:{scene:'field',lead:'狗剩爹扛着锄头:"老师,农忙就这几天,娃搭把手怎么了?"',
+	      opts:[{t:'放学后我和狗剩一起去地里',fx:{fam:-7,trust:5}},
+	            {t:'和他商量错开农忙的课时',fx:{fam:-6}},
+	            {t:'摆事实:这娃是读书的料',fx:{fam:-8,study:1}}]}
+  },
+
+  /* 换位事件：按两人性格标签生成一句话（本地）。AI可替换为更生动版本 */
+  SWAP: {
+    '闹+闹':'两个闹腾的凑一桌,教室像炸了锅,但也笑成一团——人气涨了,纪律悬了。',
+    '静+静':'两个安静的并排坐着,谁也不说话,可作业本翻得格外勤。',
+    '暖+敏感':'暖性子主动搭话,敏感的孩子肩膀慢慢松了下来。',
+    '敏感+暖':'暖性子主动搭话,敏感的孩子肩膀慢慢松了下来。',
+    '闹+敏感':'闹腾的没轻没重开了句玩笑,敏感的孩子低下了头。',
+    '敏感+闹':'闹腾的没轻没重开了句玩笑,敏感的孩子低下了头。',
+    '_default':'新同桌磨合了一阵,慢慢也就熟了。'
+  },
+  SWAP_FX: {
+    '闹+闹':{press:4,trust:2}, '静+静':{study:2}, '暖+敏感':{trust:3,press:-3},
+    '敏感+暖':{trust:3,press:-3}, '闹+敏感':{press:3,trust:-2}, '敏感+闹':{press:3,trust:-2}, '_default':{trust:1}
+  }
+};
+</script>
+
+<script>
+/* =================================================================
+   引擎层 · ENGINE — 纯函数 + 总管(reducer)。无 JSX，可被 node 单测。
+   所有数值改动都经过这里，统一存档。
+   ================================================================= */
+(function(){
+const D = window.GAME_DATA;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+	const rnd=a=>a[Math.floor(Math.random()*a.length)];
+	const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+	const interestMod=iv=>1+(clamp(iv,0,10)-5)*0.1;     // 学习增量修正
+
+const store={
+  get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}},
+	  del(k){try{localStorage.removeItem(k)}catch(e){}}
+	};
+
+	function blankMemories(students){
+	  const out={};
+	  students.forEach(s=>{ out[s.id]={summary:'', notes:[], interactions:[]}; });
+	  return out;
+	}
+	function ensureMemories(state){
+	  const memories={...(state.memories||{})};
+	  (state.students||[]).forEach(s=>{
+	    if(!memories[s.id]) memories[s.id]={summary:'',notes:[],interactions:[]};
+	    else memories[s.id]={
+	      summary:memories[s.id].summary||'',
+	      notes:Array.isArray(memories[s.id].notes)?memories[s.id].notes.slice(-12):[],
+	      interactions:Array.isArray(memories[s.id].interactions)?memories[s.id].interactions.slice(-12):[]
+	    };
+	  });
+	  return {...state, memories};
+	}
+		function appendCharacterMemory(state, id, entry){
+		  if(!id) return state;
+		  const base=ensureMemories(state);
+		  const cur=base.memories[id]||{summary:'',notes:[],interactions:[]};
+		  const note=entry.note||entry.choice||entry.text||'';
+	  const notes=note ? [...(cur.notes||[]), note].slice(-12) : (cur.notes||[]).slice(-12);
+	  const interactions=[...(cur.interactions||[]), entry].slice(-12);
+		  const summary=entry.summary || cur.summary || notes.slice(-3).join('；');
+		  return {...base, memories:{...base.memories,[id]:{summary,notes,interactions}}};
+		}
+		function compactMessages(lines){
+		  return (Array.isArray(lines)?lines:[])
+		    .map(x=>({
+		      speaker:String((x&&x.speaker)||'').slice(0,12),
+		      text:String((x&&(x.text||x.t))||'').slice(0,120)
+		    }))
+		    .filter(x=>x.text)
+		    .slice(-12);
+		}
+
+/* 新存档 */
+function newGame(){
+  const students=D.STUDENTS.map((s,i)=>({
+    id:s.id,name:s.name,talent:s.talent,talentShown:s.shown,
+    study:0, interest:0, press:10, fam:s.fam, trust:s.trust,
+    per:s.per, family:s.family, tag:s.tag, seat:i, dropped:false, status:''
+  }));
+	  return {
+		    v:3, term:1, ap:D.AP, fund:D.START_FUND,
+	    students,
+	    phase:'dialogue',            // classroom|dialogue|minigame|taskcard|settle|ending
+	    dialogue:{...D.INTRO_DIALOGUE},
+	    pendingEvent:null,           // {text,scene} 学期事件
+	    drawn:null, roundResult:null,
+	    swapMode:false, log:[], memories:blankMemories(students)
+	  };
+	}
+
+/* 应用一组 fx 到指定学生（学习经兴趣修正） */
+function applyFxToStudent(stu, fx){
+  const s={...stu};
+  if(fx.study)    s.study   = clamp(s.study + fx.study*interestMod(s.interest), 0,100);
+  if(fx.interest) s.interest= clamp(s.interest+fx.interest, 0,10);
+  if(fx.press)    s.press   = clamp(s.press + fx.press, 0,100);
+  if(fx.fam)      s.fam     = clamp(s.fam + fx.fam, 0,100);
+  if(fx.trust)    s.trust   = clamp(s.trust + fx.trust, 0,100);
+  if(fx.qingyun)  s.study   = D.WIN;
+  return s;
+}
+function mapStu(state, id, fn){
+  return {...state, students: state.students.map(s=> s.id===id ? fn(s) : s)};
+}
+
+/* 本地实时状态文案（AI失败兜底）：按属性出一句 */
+function localStatus(s){
+  if(s.dropped) return '已经离开了学校……';
+  if(s.fam>=70) return '魂不守舍,像有桩心事压着没说出口';
+  if(s.press>=75) return '眉头锁着,橡皮屑撒了一桌';
+  if(s.interest<=2) return '提不起劲,上课总望着窗外的山';
+  if(s.study>=D.WIN) return '眼里有了光,像看见了山那边';
+  if(s.trust>=60) return '见你来了,远远就笑着打招呼';
+  if(s.interest>=7) return '最近劲头很足,作业本边都画满了';
+  return '安安静静的,像在等谁拉一把';
+}
+
+/* 走出大山结算 */
+function computeResult(state){
+  const alive=state.students.filter(s=>!s.dropped);
+  const out=alive.filter(s=>s.study>=D.WIN).length;
+  const dropped=state.students.filter(s=>s.dropped).length;
+  const arch = (out>=6&&dropped===0)?'丰收' : (out>=1)?'及格' : '遗憾';
+  return {out, dropped, total:state.students.length, arch,
+    names: alive.filter(s=>s.study>=D.WIN).map(s=>s.name)};
+}
+
+/* 抽3张任务卡（保证含不同类别） */
+function drawCards(){
+  const pool=[...D.CARDS]; const picked=[]; const cats=new Set();
+  let guard=0;
+  while(picked.length<3 && guard++<50){
+    const c=rnd(pool);
+    if(picked.find(p=>p.id===c.id)) continue;
+    if(picked.length===2 && cats.size<2 && cats.has(c.cat)) continue;
+    picked.push(c); cats.add(c.cat);
+  }
+  while(picked.length<3) picked.push(rnd(pool));
+  return picked;
+}
+
+/* 学期结算：应用任务卡到全班 → 压迫漂移 → 辍学 → 取一条事件 */
+function settleTerm(state, card){
+  let students=state.students.map(s=>{
+    if(s.dropped) return s;
+    let ns=applyFxToStudent(s, card.fx);
+    if(ns.press>80) ns.interest=clamp(ns.interest-1,0,10);   // 高压掉兴趣
+    ns.fam=clamp(ns.fam+D.FAM_DRIFT,0,100);                   // 家庭压迫自然上涨
+    return ns;
+  });
+  const dropouts=[];
+  students=students.map(s=>{
+    if(!s.dropped && s.fam>=D.DROP_FAM && s.trust<D.DROP_TRUST){dropouts.push(s.name);return {...s,dropped:true};}
+    return s;
+  });
+  const alive=students.filter(s=>!s.dropped);
+	  const picked=alive.length? rnd(D.EVENTS) : {scene:'ending_office',t:'教室空了一角。'};
+	  const evt={text:picked.t.replace(/\{S\}/g, alive.length?rnd(alive).name:''), scene:picked.scene||'classroom_topdown'};
+  const log=[`📋 第${state.term}学期:${card.title}`];
+  dropouts.forEach(n=>log.push(`❌ ${n}辍学离开了……家庭压迫太大,信任不够`));
+  return {students, evt, dropouts, log};
+}
+
+/* ============ 总管 reducer：所有操作的唯一入口 ============ */
+function reducer(state, a){
+  switch(a.type){
+    case 'NEW': return newGame();
+	    case 'LOAD': return ensureMemories(a.save);
+
+    case 'SWAP_MODE': return {...state, swapMode:a.on};
+
+    case 'SWAP_SEATS': {                      // a.i,a.j 为座位号
+      if(state.ap<=0) return state;
+      const arr=[...state.students];
+      const A=arr.find(s=>s.seat===a.i), B=arr.find(s=>s.seat===a.j);
+      if(!A||!B||A.id===B.id) return state;
+      const students=state.students.map(s=>{
+        if(s.id===A.id) return {...s,seat:a.j};
+        if(s.id===B.id) return {...s,seat:a.i};
+        return s;
+      });
+      const key=A.tag+'+'+B.tag;
+      const line=D.SWAP[key]||D.SWAP._default;
+      const fx=D.SWAP_FX[key]||D.SWAP_FX._default;
+      let st={...state, students, swapMode:false, ap:state.ap-1};
+      st=mapStu(st,A.id,s=>applyFxToStudent(s,fx));
+      st=mapStu(st,B.id,s=>applyFxToStudent(s,fx));
+	      st.dialogue={who:'换位',mc:false,kind:'swap',scene:'classroom_topdown',lead:`${A.name} 和 ${B.name} 换了座。\n${line}`,opts:null,studentId:null};
+      st.phase='dialogue';
+      return st;
+    }
+
+	    case 'OPEN_DIALOGUE':                      // a.dialogue 由组件准备好(AI或本地)
+	      if(state.ap<=0 && a.cost) return state;
+	      return {...state, phase:'dialogue', dialogue:a.dialogue, ap: a.cost? state.ap-1 : state.ap};
+	    case 'UPDATE_DIALOGUE':
+	      return {...state, dialogue:a.dialogue};
+	    case 'ADD_MEMORY':
+	      return appendCharacterMemory(state, a.studentId, a.entry||{});
+
+	    case 'RESOLVE_DIALOGUE': {                 // a.fx,a.studentId,a.unlock
+	      let st={...state};
+		      if(a.studentId && a.fx) st=mapStu(st,a.studentId,s=>applyFxToStudent(s,a.fx));
+		      if(a.studentId && a.unlock) st=mapStu(st,a.studentId,s=>({...s,talentShown:true}));
+		      if(a.studentId && a.newPer) st=mapStu(st,a.studentId,s=>({...s,per:a.newPer}));
+		      if(a.studentId && a.statusUpdate) st=mapStu(st,a.studentId,s=>({...s,status:a.statusUpdate}));
+			      if(a.studentId) st=appendCharacterMemory(st,a.studentId,{
+			        term:state.term,
+			        kind:state.dialogue&&state.dialogue.kind,
+			        choice:a.choiceText||'结束对话',
+			        outcomeTag:a.outcomeTag,
+			        settlementTitle:a.settlementTitle,
+			        note:a.memoryNote || `第${state.term}学期${state.dialogue&&state.dialogue.kind==='visit'?'家访':'私聊'}:老师选择「${a.choiceText||'结束对话'}」。`,
+			        summary:a.memorySummary,
+			        messages:a.messages || [...compactMessages(state.dialogue&&state.dialogue.lines),{speaker:'老师',text:String(a.choiceText||'结束对话').slice(0,120)}].slice(-12)
+			      });
+	      st.dialogue=null; st.phase='classroom';
+	      return st;
+	    }
+    case 'CLOSE_DIALOGUE': return {...state, dialogue:null, phase:'classroom'};
+
+    case 'WORK_DONE':                          // a.amount 小游戏得分
+      return {...state, fund:state.fund + clamp(a.amount,0,200), ap:state.ap-1, phase:'classroom'};
+    case 'GO_MINIGAME':
+      if(state.ap<=0) return state;
+      return {...state, phase:'minigame'};
+    case 'CANCEL_MINIGAME': return {...state, phase:'classroom'};
+
+    case 'REST': {
+      if(state.ap<=0) return state;
+      const students=state.students.map(s=> s.dropped?s:applyFxToStudent(s,{press:-8}));
+      return {...state, students, ap:state.ap-1};
+    }
+
+    case 'BUY': {                              // a.item,a.studentId
+      const it=D.SHOP.find(x=>x.id===a.item); if(!it) return state;
+      if(state.fund<it.price) return state;
+      const stu=state.students.find(s=>s.id===a.studentId);
+      if(!stu||stu.dropped) return state;
+      if(it.onlyTalent && !stu.talentShown) return state;
+      let st={...state, fund:state.fund-it.price};
+      st=mapStu(st,a.studentId,s=>applyFxToStudent(s, it.qingyun?{qingyun:true}:it.fx));
+      return st;
+    }
+
+    case 'NEXT_TERM':
+      return {...state, phase:'taskcard', drawn:drawCards()};
+
+    case 'PICK_CARD': {                        // a.card
+      const r=settleTerm(state, a.card);
+      return {...state, students:r.students, pendingEvent:r.evt, log:r.log, phase:'settle'};
+    }
+
+    case 'CONTINUE': {                         // 结算页点继续
+      if(state.term>=D.TERMS){
+        return {...state, phase:'ending', roundResult:computeResult(state)};
+      }
+      const students=state.students.map(s=>({...s, status:''}));  // 清空状态待刷新
+      return {...state, term:state.term+1, ap:D.AP, pendingEvent:null, drawn:null, phase:'classroom', students};
+    }
+
+    case 'SET_STATUS':                         // a.map: {id:status文案}
+      return {...state, students: state.students.map(s=> a.map[s.id]!==undefined? {...s,status:a.map[s.id]} : s)};
+
+    default: return state;
+  }
+}
+
+function isValidSave(s){
+  return !!(s && s.v===3 && typeof s.term==='number' && Array.isArray(s.students) && s.students.length===9 && s.phase);
+}
+
+window.ENGINE={reducer,newGame,computeResult,settleTerm,drawCards,applyFxToStudent,interestMod,localStatus,isValidSave,store,compactMessages,clamp,ri,rnd};
+})();
+</script>
+
+<script>
+/* =================================================================
+   AI 层 · 调云雾(serverless) + 超时兜底。file:// 或失败 → 返回 null
+   ================================================================= */
+window.AI = (function(){
+  async function call(type, payload, timeout){
+    if(location.protocol==='file:') return null;          // 本地双击:无服务端,走兜底
+    try{
+      const ctrl=new AbortController();
+      const t=setTimeout(()=>ctrl.abort(), timeout||8000);
+      const res=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({type,payload}),signal:ctrl.signal});
+      clearTimeout(t);
+      if(!res.ok) return null;
+      const data=await res.json();
+      return data&&data.ok? data.result : null;
+    }catch(e){ return null; }
+  }
+  return {call};
+})();
+</script>
+
+<script type="text/babel" data-presets="react">
+/* =================================================================
+   界面层 · UI（React 组件）
+   ================================================================= */
+const {useState,useEffect,useRef,useReducer,useCallback}=React;
+const D=window.GAME_DATA, E=window.ENGINE, AI=window.AI;
+
+	const STUDENT_ASSET_IDS = new Set(['damao','xiaohua','chouwa','xingxing','mumu','danzai','goushen','ahua','matui']);
+	const ADULT_ASSET_IDS = new Set(['teacher','chen']);
+	const SCENE_ASSET_IDS = new Set(['classroom_topdown','office','field','road','playground','shop','ending_office']);
+	const ACTION_ICON = {chat:'chat',visit:'home',swap:'swap',work:'work',rest:'rest'};
+	const TASK_SKIN = {study:'task_study',interest:'task_interest',care:'task_care'};
+		const imgPath=(kind,id)=>`assets/characters/${kind}/${id}.png`;
+		const uiPath=id=>`assets/ui/${id}.png`;
+		const standeePath=id=>`assets/characters/standees/${id}.png`;
+		const scenePath=id=>`assets/scene/${SCENE_ASSET_IDS.has(id)?id:'classroom_topdown'}.png`;
+		const portraitAssetId=id=>{
+		  if(id==='老师'||id==='周老师'||id==='主角') return 'teacher';
+		  if(id==='老陈'||id==='陈校长'||id==='校长') return 'chen';
+		  return id;
+		};
+		const PERSONA_CACHE = {};
+		async function loadPersona(id){
+		  if(!id) return null;
+		  if(Object.prototype.hasOwnProperty.call(PERSONA_CACHE,id)) return PERSONA_CACHE[id];
+		  try{
+		    const r=await fetch(`data/personas/${id}.json`,{cache:'no-store'});
+		    if(!r.ok) throw new Error('persona '+r.status);
+		    const data=await r.json();
+		    PERSONA_CACHE[id]=data;
+		    return data;
+		  }catch(e){
+		    PERSONA_CACHE[id]=null;
+		    return null;
+		  }
+		}
+		function personaFallback(stu){
+		  if(!stu) return null;
+		  return {
+		    id:stu.id,
+		    name:stu.name,
+		    role:'学生',
+		    core:stu.per,
+		    family:stu.family,
+		    talent:D.TALENTS[stu.talent]&&D.TALENTS[stu.talent].name,
+		    voice:{tone:'贴合该学生性格,自然口语,不要模板化'},
+		    chatKnowledge:[stu.per],
+		    visitKnowledge:[stu.family]
+		  };
+		}
+			function characterMemory(state,id){
+			  const m=state&&state.memories&&state.memories[id];
+			  return m || {summary:'',notes:[],interactions:[]};
+			}
+			const SAVE_KEY='shan_v3';
+			const ATTR_LABELS={study:'学习',interest:'兴趣',press:'压力',fam:'家庭压迫',trust:'信任'};
+			function outcomeCatalog(kind){
+			  return kind==='visit' ? D.VISIT_OUTCOMES : D.CHAT_OUTCOMES;
+			}
+			function pickFallbackOutcome(kind,stu){
+			  if(kind==='visit'){
+			    if(stu.fam>=55) return 'family_understood';
+			    if(stu.press>=55) return 'burden_reduced';
+			    return 'family_trust';
+			  }
+			  if(stu.press>=60) return 'pressure_relief';
+			  if(stu.interest<=2) return 'interest_rekindled';
+			  if(stu.study<=12) return 'study_confidence';
+			  if(stu.fam>=55) return 'family_disclosure';
+			  return 'trust_built';
+			}
+			function resolveOutcome(kind,tag,stu){
+			  const catalog=outcomeCatalog(kind);
+			  const key=(tag&&catalog[tag])?tag:pickFallbackOutcome(kind,stu);
+			  return {...catalog[key], id:key};
+			}
+			function applyPreviewValue(stu,key,delta){
+			  const base=Number(stu[key]||0);
+			  const max=key==='interest'?10:100;
+			  return {key,label:ATTR_LABELS[key]||key,before:base,after:E.clamp(base+delta,0,max),delta};
+			}
+			function buildSettlement(kind,ai,stu,turnCount){
+			  const raw=ai&&ai.settlement&&typeof ai.settlement==='object'?ai.settlement:{};
+			  const outcome=resolveOutcome(kind,raw.outcomeTag,stu);
+			  const fx={...(outcome.fx||{})};
+			  const changes=Object.keys(fx).map(k=>applyPreviewValue(stu,k,fx[k]));
+			  const profileUpdate=String(raw.profileUpdate||ai&&ai.memorySummary||outcome.desc||'').slice(0,48);
+			  return {
+			    ready:!!raw.ready,
+			    outcome,
+			    fx,
+			    changes,
+			    title:String(raw.title||outcome.title||'对话结算').slice(0,18),
+			    teacherSummary:String(raw.teacherSummary||raw.summary||`老师记下了这次谈话的重点。`).slice(0,120),
+			    studentReaction:String(raw.studentReaction||outcome.desc||'学生把这句话记在了心里。').slice(0,100),
+			    profileUpdate,
+			    memoryNote:String(raw.memoryNote||ai&&ai.memoryNote||outcome.desc||'一次重要的谈话').slice(0,60),
+			    memorySummary:String(raw.memorySummary||ai&&ai.memorySummary||profileUpdate||outcome.desc||'关系有了新的变化').slice(0,80),
+			    unlock:!!outcome.unlock && stu.talent!=='none' && !stu.talentShown,
+			    turnCount
+			  };
+			}
+			function shouldForceSettle(dialogue,nextLines,nextTurn){
+			  const max=dialogue.maxMessages||D.MAX_CHAT_MESSAGES||30;
+			  return nextTurn>=4 || nextLines.length>=Math.max(8,max-4);
+			}
+			function localTeacherOpening(stu,kind){
+			  if(kind==='visit') return `我是${stu.name}的老师,今天想来听听家里的实际难处。`;
+			  if(stu.press>=60) return `${stu.name},最近是不是有点累?老师想听你说说。`;
+			  if(stu.interest<=2) return `${stu.name},最近对学习是不是有点提不起劲?我们随便聊聊。`;
+			  if(stu.study<=10) return `${stu.name},刚起步慢慢来,不用急。老师陪你理一理。`;
+			  return `${stu.name},今天找你随便聊聊,最近有啥新鲜事吗?`;
+			}
+
+/* ---- 头像：优先使用项目内 QQ 人切片，缺图时退回种子化 SVG ---- */
+function FallbackAvatar({seed,size}){
+  let h=0;for(const c of seed)h=(h*31+c.charCodeAt(0))>>>0;
+  const skin=['#f3c9a0','#e8b88a','#d9a878'][h%3], shirt=['#7BA05B','#5B7FA0','#C25B4E','#C99A2E','#E8853A'][h%5];
+  const hair=['#3a2a20','#241a12','#4a3424'][(h>>2)%3];
+  const sz=size||44;
+  return(<svg className="avatar-fallback" viewBox="0 0 44 44" width={sz} height={sz}>
+    <circle cx="22" cy="22" r="21" fill="#efe5cd"/>
+    <path d="M8,44 q14,-15 28,0 Z" fill={shirt}/>
+    <circle cx="22" cy="19" r="11" fill={skin}/>
+    <path d={(h%2)?'M11,17 q11,-13 22,0 l0,-5 q-11,-8 -22,0 Z':'M11,18 q3,-12 11,-12 q9,0 11,12 q-6,-6 -11,-6 q-6,0 -11,6 Z'} fill={hair}/>
+    <circle cx="18" cy="19.5" r="1.4" fill="#2a1d12"/><circle cx="26" cy="19.5" r="1.4" fill="#2a1d12"/>
+    <path d={`M18.5,${23+(h%3===0?0:1)} q3.5,${h%3===1?0:2.5} 7,0`} stroke="#2a1d12" strokeWidth="1.2" fill="none"/>
+  </svg>);
+}
+	function Avatar({seed,size}){
+  const sz=size||44;
+  const [failed,setFailed]=useState(false);
+  if(STUDENT_ASSET_IDS.has(seed) && !failed){
+    return <img className="qq-avatar" src={imgPath('qq',seed)} alt={`${seed}头像`} width={sz} height={sz} style={{width:sz,height:sz}} onError={()=>setFailed(true)}/>;
+  }
+	  return <FallbackAvatar seed={seed} size={sz}/>;
+	}
+		function CharacterPortrait({id,label}){
+		  const pid=portraitAssetId(id);
+		  const [failed,setFailed]=useState(false);
+		  if((STUDENT_ASSET_IDS.has(pid)||ADULT_ASSET_IDS.has(pid)) && !failed){
+		    return <img className="portrait-img" src={standeePath(pid)} alt={`${label||pid}立绘`} onError={()=>setFailed(true)}/>;
+		  }
+		  return <FallbackAvatar seed={pid||label||'teacher'} size={120}/>;
+		}
+
+		function normalizeLines(lines, fallbackSpeaker, fallbackText, fallbackPortrait){
+		  const source=Array.isArray(lines)?lines:[];
+	  const mapped=source.map(x=>{
+	    if(typeof x==='string') return {speaker:fallbackSpeaker,text:x};
+	    return {speaker:x&&x.speaker,text:x&&(x.text||x.t),portraitId:x&&x.portraitId,mc:x&&x.mc};
+	  }).filter(x=>String(x.text||'').trim());
+	  const usable=mapped.length?mapped:[{speaker:fallbackSpeaker,text:fallbackText||'',portraitId:fallbackPortrait}];
+		  return usable.slice(0,80).map(x=>{
+	    const speaker=String(x.speaker||fallbackSpeaker||'老师').slice(0,12);
+	    const teacher=/老师|周老师|主角/.test(speaker);
+	    const chen=/老陈|陈校长|校长/.test(speaker);
+	    const portraitId=x.portraitId || (teacher?'teacher':(chen?'chen':fallbackPortrait));
+	    return {
+	      speaker,
+	      text:String(x.text||'').slice(0,220),
+	      portraitId,
+	      mc:x.mc!==undefined?!!x.mc:teacher
+	    };
+	  });
+	}
+
+/* ---- 打字机 ---- */
+function useTyper(text,speed){
+  const [out,setOut]=useState(''); const [done,setDone]=useState(false);
+  useEffect(()=>{ setOut('');setDone(false); let i=0;
+    const id=setInterval(()=>{i++;setOut(text.slice(0,i));if(i>=text.length){setDone(true);clearInterval(id)}}, speed||26);
+    return()=>clearInterval(id);
+  },[text]);
+  return [out,done,()=>{setOut(text);setDone(true)}];
+}
+
+/* ---- 顶栏 ---- */
+function Hud({state,onShop,onLog}){
+  const yr=1997+state.term;
+  return(<div className="hud">
+    <span className="year">{yr}年 · 第{state.term}/{D.TERMS}学期</span>
+    <span className="stat">💰¥{state.fund}</span>
+    <span className="stat">⚡{[...Array(D.AP)].map((_,i)=><i key={i} className={'ap-dot'+(i<state.ap?'':' used')}/>)}</span>
+    <button className="btn small" onClick={onShop}>🛒商店</button>
+    <button className="btn small ghost" onClick={onLog}>📔日志</button>
+  </div>);
+}
+
+/* ---- 教室 + 拖拽换位 ---- */
+function Classroom({state,dispatch,toast}){
+  const seats=[...Array(9)].map((_,i)=> state.students.find(s=>s.seat===i));
+  const [drag,setDrag]=useState(null), [over,setOver]=useState(null);
+
+  // 指针拖拽（手机/电脑通用）
+  const onDown=(i)=>(e)=>{ if(!seats[i]||seats[i].dropped) return; setDrag(i); };
+  const onMove=(e)=>{ if(drag===null) return;
+    const t=e.touches?e.touches[0]:e; const el=document.elementFromPoint(t.clientX,t.clientY);
+    const seat=el&&el.closest('.seat'); setOver(seat?+seat.dataset.i:null);
+  };
+  const onUp=()=>{ if(drag!==null && over!==null && over!==drag){
+      if(state.ap<=0){ toast('体力不足'); } else { dispatch({type:'SWAP_SEATS',i:drag,j:over}); }
+    } setDrag(null);setOver(null);
+  };
+
+  return(<div className="stage" onPointerMove={onMove} onPointerUp={onUp} onTouchMove={onMove} onTouchEnd={onUp}>
+    <div className="room-title">俯视教室 · 按住头像拖到另一个座位可换位（耗1体力）</div>
+    <div className="room">
+      <div className="seatgrid">
+        {seats.map((s,i)=> s?(
+          <div key={i} data-i={i}
+            className={'seat'+(drag===i?' dragging':'')+(over===i?' over':'')+(s.dropped?' gone':'')}
+            onPointerDown={onDown(i)} onTouchStart={onDown(i)}>
+            <Avatar seed={s.id} size={40}/>
+            <div className="nm">{s.name}{s.talentShown&&D.TALENTS[s.talent].ico?' '+D.TALENTS[s.talent].ico:''}</div>
+            <div className="tg">{s.dropped?'已离开':(s.study>=D.WIN?'已走出大山':'兴趣'+s.interest+'/10')}</div>
+          </div>
+        ):<div key={i} className="seat" style={{opacity:.2}}/> )}
+      </div>
+      <div className="podium">— 讲 台 —</div>
+    </div>
+  </div>);
+}
+
+/* ---- 行动栏 ---- */
+function ActionBar({state,dispatch,onChat,onVisit,onNext,toast}){
+  const noAp=state.ap<=0;
+  const act=(fn,needAp)=>()=>{ if(needAp&&noAp){toast('体力不足');return;} fn(); };
+	  return(<div className="actionbar">
+	    <button className="actbtn" disabled={noAp} onClick={act(onChat,true)}><span className="ic"><img src={uiPath(ACTION_ICON.chat)} alt="私聊"/></span><span className="lb">私聊</span></button>
+	    <button className="actbtn" disabled={noAp} onClick={act(onVisit,true)}><span className="ic"><img src={uiPath(ACTION_ICON.visit)} alt="家访"/></span><span className="lb">家访</span></button>
+	    <button className="actbtn" disabled={noAp} onClick={act(()=>dispatch({type:'SWAP_MODE',on:true})||toast('拖动两个同学换位'),true)}><span className="ic"><img src={uiPath(ACTION_ICON.swap)} alt="换位"/></span><span className="lb">换位</span></button>
+	    <button className="actbtn" disabled={noAp} onClick={act(()=>dispatch({type:'GO_MINIGAME'}),true)}><span className="ic"><img src={uiPath(ACTION_ICON.work)} alt="打工"/></span><span className="lb">打工</span></button>
+	    <button className="actbtn" disabled={noAp} onClick={act(()=>{dispatch({type:'REST'});toast('全班松了口气,压力-8');},true)}><span className="ic"><img src={uiPath(ACTION_ICON.rest)} alt="休息"/></span><span className="lb">休息</span></button>
+    <button className="actbtn go" onClick={()=>{ if(state.ap>0 && !confirm('体力还没用完,确定进入下一学期?')) return; onNext(); }}><span className="ic">▶</span><span className="lb">下一学期</span></button>
+  </div>);
+}
+
+		/* ---- 对话播放器（私聊/家访/换位/事件通用）---- */
+				function Dialogue({dialogue,onResolve,onClose,onFreeReply,onContinue,replying}){
+			  const lines=normalizeLines(dialogue.lines, dialogue.who, dialogue.lead, dialogue.portraitId||dialogue.studentId||dialogue.who);
+			  const [lineIndex,setLineIndex]=useState(0);
+			  const [freeText,setFreeText]=useState('');
+			  const chatRef=useRef(null);
+			  const isLiveChat=dialogue.kind==='chat'||dialogue.kind==='visit';
+			  const dialogueKey=`${dialogue.kind||''}:${dialogue.studentId||''}:${dialogue.who||''}:${dialogue.lead||''}`;
+			  useEffect(()=>{setLineIndex(0);setFreeText('');},[dialogueKey]);
+			  useEffect(()=>{
+			    if(isLiveChat && chatRef.current) chatRef.current.scrollTop=chatRef.current.scrollHeight;
+			  },[isLiveChat,lines.length,replying,dialogueKey]);
+				  const current=lines[Math.min(lineIndex,lines.length-1)]||{speaker:dialogue.who,text:''};
+			  const [typed,done,skip]=useTyper(current.text,24);
+			  const isLast=lineIndex>=lines.length-1;
+			  const showOpts = dialogue.opts && done && isLast;
+			  const next=()=>{ if(!done){skip();return;} if(!isLast) setLineIndex(i=>i+1); else onClose(); };
+			  const submitFree=()=>{ const txt=freeText.trim(); if(!txt||replying||!onFreeReply) return; setFreeText(''); onFreeReply(txt, lines); };
+				  if(isLiveChat){
+				    const sub=dialogue.kind==='visit'?'家访':'私聊';
+				    const settlement=dialogue.settlement;
+				    const settleOpt=settlement?{
+				      t:settlement.title,
+				      fx:settlement.fx,
+				      unlock:settlement.unlock,
+				      choiceText:settlement.title,
+				      outcomeTag:settlement.outcome&&settlement.outcome.id,
+				      settlementTitle:settlement.title,
+				      memoryNote:settlement.memoryNote,
+				      memorySummary:settlement.memorySummary,
+				      statusUpdate:settlement.profileUpdate,
+					      messages:[...E.compactMessages(lines),{speaker:'老师',text:settlement.teacherSummary},{speaker:dialogue.who,text:settlement.studentReaction}].slice(-12)
+				    }:null;
+					    const livePortraitId=dialogue.studentId||dialogue.portraitId||dialogue.who;
+					    const sceneStyle={'--chat-scene':`url("${scenePath(dialogue.scene)}")`};
+					    return(<div className="stage chat-stage" style={sceneStyle}>
+				      <div className="chat-live-portrait"><CharacterPortrait id={livePortraitId} label={dialogue.who}/></div>
+				      <div className="chat-shell">
+			        <div className="chat-head">
+			          <Avatar seed={dialogue.studentId||dialogue.portraitId||dialogue.who} size={42}/>
+			          <div className="chat-head-main">
+			            <div className="chat-title">{dialogue.who}</div>
+			            <div className="chat-sub">{sub}{dialogue.ai?' · AI':''}{dialogue.memoryCount>0?` · 记忆 ${dialogue.memoryCount}`:''}</div>
+			          </div>
+			          <button className="chat-close" onClick={onClose} aria-label="关闭对话">×</button>
+			        </div>
+			        <div className="chat-messages" ref={chatRef}>
+			          {lines.map((line,i)=>{
+			            const mine=line.mc || /老师|周老师|主角/.test(line.speaker||'');
+			            const seed=mine?'teacher':(line.portraitId||dialogue.studentId||line.speaker||dialogue.who);
+			            return <div key={i} className={'chat-row '+(mine?'mine':'other')}>
+			              <div className="chat-avatar"><Avatar seed={seed} size={32}/></div>
+			              <div className="chat-bubble">
+			                <div className="chat-speaker">{line.speaker||dialogue.who}</div>
+			                <div>{line.text}</div>
+			              </div>
+			            </div>;
+			          })}
+			          {replying && <div className="chat-row other">
+			            <div className="chat-avatar"><Avatar seed={dialogue.studentId||dialogue.who} size={32}/></div>
+			            <div className="chat-bubble"><span className="chat-typing"><i/><i/><i/></span></div>
+			          </div>}
+			        </div>
+				        <div className="chat-composer">
+				          {dialogue.phase==='settlement' && settlement ? <div className="settle-card">
+				            <h4>{settlement.title}</h4>
+				            <p>{settlement.teacherSummary}</p>
+				            <p>{settlement.studentReaction}</p>
+				            {settlement.outcome&&settlement.outcome.tags&&<div className="settle-tags">{settlement.outcome.tags.map(x=><span key={x}>{x}</span>)}</div>}
+				            <div className="fx-list">
+				              {(settlement.changes||[]).map(c=><div key={c.key} className="fx-row"><span>{c.label}</span><b className={c.delta<0?'neg':''}>{c.before} → {c.after}</b></div>)}
+				              {settlement.unlock&&<div className="fx-row"><span>天赋</span><b>显现</b></div>}
+				            </div>
+				            {settlement.profileUpdate&&<p>档案更新：{settlement.profileUpdate}</p>}
+				            <div className="settle-actions">
+				              <button className="btn warm" onClick={()=>onResolve&&onResolve(settleOpt)}>结算结束</button>
+				              <button className="btn ghost" onClick={()=>onContinue&&onContinue()}>继续聊</button>
+				            </div>
+				          </div> : <>
+					          {dialogue.opts && dialogue.opts.length>0 && <div className="chat-suggestions">
+					            {dialogue.opts.map((o,i)=><button key={i} className="chat-chip" disabled={replying}
+					              onClick={()=>onFreeReply?onFreeReply(o.t,lines):(onResolve&&onResolve(o))}>{o.t}</button>)}
+					          </div>}
+					          <div className="chat-input-row">
+					            <input value={freeText} disabled={replying||!onFreeReply}
+					              onChange={e=>setFreeText(e.target.value)}
+					              onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey) submitFree();}}/>
+					            <button className="chat-send" disabled={replying||!freeText.trim()} onClick={submitFree}>{replying?'生成中':'发送'}</button>
+					          </div>
+				          </>}
+				        </div>
+			      </div>
+			    </div>);
+			  }
+			  return(<div className="stage">
+		    <div className="dlg-wrap">
+		      <div className="dlg-scene" style={{backgroundImage:`url("${scenePath(dialogue.scene)}")`}}>
+	        <div className="portrait"><CharacterPortrait id={current.portraitId||dialogue.portraitId||dialogue.studentId||dialogue.who} label={current.speaker||dialogue.who}/></div>
+	      </div>
+	      <div className="dlg-box" onClick={!done?skip:(showOpts?undefined:next)}>
+		        <span className={'dlg-name'+(current.mc?' mc':'')}>{current.speaker||dialogue.who}</span>
+		        {dialogue.ai && <span style={{fontSize:10,color:'var(--blue)',marginLeft:6}}>AI</span>}
+		        {dialogue.memoryCount>0 && <span className="memory-chip">记忆 {dialogue.memoryCount}</span>}
+		        {lines.length>1 && <span className="dlg-progress">{lineIndex+1}/{lines.length}</span>}
+	        <div className="dlg-text ai">{typed}</div>
+	        {!done && <div className="dlg-hint">▼ 点击加速</div>}
+	        {done && !showOpts && <div className="dlg-tools"><button className="btn small" onClick={next}>{isLast?'知道了':'继续'}</button></div>}
+		        {showOpts && <div className="choices">
+		          {dialogue.opts.map((o,i)=><button key={i} className="choice"
+	            onClick={()=>onResolve(o)}>{o.t}</button>)}
+	        </div>}
+	        {showOpts && onFreeReply && <div className="free-reply" onClick={e=>e.stopPropagation()}>
+		          <input value={freeText} disabled={replying}
+	            onChange={e=>setFreeText(e.target.value)}
+	            onKeyDown={e=>{if(e.key==='Enter') submitFree();}}/>
+	          <button className="btn small" disabled={replying||!freeText.trim()} onClick={submitFree}>{replying?'生成中':'发送'}</button>
+	        </div>}
+	      </div>
+    </div>
+  </div>);
+}
+
+/* ---- 私聊前置选择页 ---- */
+function ChatPicker({state,onPick,onClose}){
+  return(<div className="modal-bg" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}>
+    <h3>找个孩子聊聊 <button className="btn small ghost" onClick={onClose}>✕</button></h3>
+    {state.students.filter(s=>!s.dropped).map(s=>(
+      <div key={s.id} className="stu-row" onClick={()=>onPick(s)}>
+        <Avatar seed={s.id} size={40}/>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:600,fontSize:14}}>{s.name}</div>
+          <div className="status-txt">{s.status||E.localStatus(s)}</div>
+        </div>
+      </div>
+    ))}
+  </div></div>);
+}
+
+/* ---- 家访前置选择页：小房子地图 ---- */
+function VisitPicker({state,onPick,onClose}){
+  const alive=state.students.filter(s=>!s.dropped);
+  const mini=(label,value,max,color)=><div className="house-mini"><span>{label}</span><i style={{'--w':`${Math.round(value/max*100)}%`,'--c':color}}/><b>{Math.round(value)}</b></div>;
+  return(<div className="modal-bg" onClick={onClose}><div className="modal visit-modal" onClick={e=>e.stopPropagation()}>
+    <h3>选择家访对象 <button className="btn small ghost" onClick={onClose}>✕</button></h3>
+    <div className="visit-note">每次家访消耗 1 点体力。先选择要拜访的家庭，再根据家庭矛盾和对话选择获得数值变化。</div>
+    <div className="visit-map">
+      {alive.map(s=>(
+        <button key={s.id} className="house-card" onClick={()=>onPick(s)}>
+          <div className="house-top">
+            <span className="house-icon"><span className="house-door"/></span>
+            <span><span className="house-name">{s.name}家</span><span className="house-meta"> · {s.trust}信任</span></span>
+          </div>
+          <div className="house-family">{s.family}</div>
+          <div className="house-bars">
+            {mini('家庭压迫',s.fam,100,'var(--red)')}
+            {mini('压力',s.press,100,'var(--dusk)')}
+          </div>
+        </button>
+      ))}
+    </div>
+  </div></div>);
+}
+
+/* ---- 商店 ---- */
+	function Shop({state,dispatch,toast,onClose}){
+	  const [pick,setPick]=useState(null);   // {item}
+	  const alive=state.students.filter(s=>!s.dropped);
+	  return(<div className="modal-bg" onClick={onClose}><div className="modal shop-modal" onClick={e=>e.stopPropagation()}>
+	    <h3>🛒 集市小店 · ¥{state.fund} <button className="btn small ghost" onClick={onClose}>✕</button></h3>
+	    {!pick && D.SHOP.map(it=>(
+	      <div key={it.id} className="shop-item">
+	        <img className="shop-icon" src={uiPath(it.id)} alt={`${it.name}道具`}/>
+	        <div className="info"><div className="nm">{it.name} <span style={{color:'var(--dusk)'}}>¥{it.price}</span></div>
+	          <div className="ds">{it.desc} · {it.note}</div></div>
+        <button className="btn small warm" disabled={state.fund<it.price} onClick={()=>setPick(it)}>买给…</button>
+      </div>
+    ))}
+    {pick && <div>
+      <div style={{margin:'4px 0 10px',fontSize:13}}>「{pick.name}」买给谁？{pick.onlyTalent&&<span style={{color:'var(--red)'}}>（仅限已显示天赋）</span>}</div>
+      {alive.map(s=>{
+        const dis=pick.onlyTalent&&!s.talentShown;
+        return <button key={s.id} className="btn small" disabled={dis} style={{margin:3}}
+          onClick={()=>{dispatch({type:'BUY',item:pick.id,studentId:s.id});toast(`给${s.name}买了${pick.name}`);setPick(null);}}>
+          {s.name}{dis?'(无天赋)':''}</button>;
+      })}
+      <div><button className="btn small ghost" style={{marginTop:8}} onClick={()=>setPick(null)}>返回</button></div>
+    </div>}
+  </div></div>);
+}
+
+/* ---- 班级日志 / 学生属性 ---- */
+	function ClassLog({state,onClose}){
+  const [sel,setSel]=useState(null);
+  const Bar=({label,v,max,color})=>(<div className="attr-line"><span>{label}</span>
+    <div className="bar"><i style={{width:(v/max*100)+'%',background:color}}/></div><b>{Math.round(v)}{max===10?'/10':''}</b></div>);
+	  return(<div className="modal-bg" onClick={onClose}><div className="modal log-modal" onClick={e=>e.stopPropagation()}>
+    <h3>📔 班级日志 <button className="btn small ghost" onClick={onClose}>✕</button></h3>
+    {!sel && state.students.map(s=>(
+      <div key={s.id} className="stu-row" onClick={()=>setSel(s)}>
+        <Avatar seed={s.id} size={38}/>
+        <div style={{flex:1}}><b style={{fontSize:14}}>{s.name}</b>
+          <span style={{fontSize:11.5,color:'var(--soft)',marginLeft:6}}>
+            {s.dropped?'已离开':(s.study>=D.WIN?'✅已走出大山':'学习'+Math.round(s.study))}</span></div>
+        <span style={{fontSize:12}}>{s.talentShown&&D.TALENTS[s.talent].ico}</span>
+      </div>
+    ))}
+    {sel && <div>
+      <div className="row" style={{marginBottom:8}}><Avatar seed={sel.id} size={48}/>
+        <div><b style={{fontSize:15}}>{sel.name}</b>
+          <div style={{fontSize:12,color:'var(--soft)'}}>{sel.talentShown?D.TALENTS[sel.talent].ico+D.TALENTS[sel.talent].name+'天赋(已显示)':'天赋未显现'}</div></div></div>
+      <Bar label="学习值" v={sel.study} max={100} color="#C25B4E"/>
+      <Bar label="兴趣值" v={sel.interest} max={10} color="#7BA05B"/>
+      <Bar label="压力值" v={sel.press} max={100} color="#5B7FA0"/>
+      <Bar label="家庭压迫" v={sel.fam} max={100} color="#8a5a44"/>
+      <Bar label="信任" v={sel.trust} max={100} color="#C99A2E"/>
+      <div style={{fontSize:12.5,background:'var(--paper)',borderRadius:8,padding:'8px 10px',marginTop:8,lineHeight:1.6}}>{sel.per}</div>
+      <button className="btn small ghost" style={{marginTop:10}} onClick={()=>setSel(null)}>返回</button>
+    </div>}
+  </div></div>);
+}
+
+/* ---- 打工小游戏：点金币 ---- */
+function Minigame({onDone,onCancel}){
+  const [coins,setCoins]=useState([]);
+  const [score,setScore]=useState(0);
+  const [time,setTime]=useState(12);
+  const areaRef=useRef(null);
+  useEffect(()=>{
+    const spawn=setInterval(()=>{
+      const id=Math.random();
+      setCoins(c=>[...c,{id,x:8+Math.random()*78,y:8+Math.random()*70,v:10+Math.floor(Math.random()*11)}]);
+      setTimeout(()=>setCoins(c=>c.filter(x=>x.id!==id)),1400);
+    },420);
+    const tick=setInterval(()=>setTime(t=>{ if(t<=1){clearInterval(tick);clearInterval(spawn);} return t-1; }),1000);
+    return()=>{clearInterval(spawn);clearInterval(tick);};
+  },[]);
+  useEffect(()=>{ if(time<=0){ const fund=Math.min(200, 40+score); setTimeout(()=>onDone(fund),300);} },[time]);
+  const grab=(c)=>{ setScore(s=>s+c.v); setCoins(cs=>cs.filter(x=>x.id!==c.id)); };
+  return(<div className="stage">
+    <div className="room-title">点金币赚基金！手快有，慢了就没了（保底 ¥40）</div>
+    <div className="mini" ref={areaRef}>
+      <div className="mini-hud"><span>⏱ {time}s</span><span>💰 {Math.min(200,40+score)}</span></div>
+      {coins.map(c=>(<div key={c.id} className="coin" style={{left:c.x+'%',top:c.y+'%'}} onPointerDown={()=>grab(c)}>¥</div>))}
+    </div>
+    <div style={{textAlign:'center',marginTop:8}}><button className="btn small ghost" onClick={onCancel}>放弃打工</button></div>
+  </div>);
+}
+
+/* ---- 任务卡 ---- */
+	function TaskCard({drawn,onPick}){
+	  return(<div className="stage">
+    <h2 className="serif" style={{textAlign:'center',fontSize:18,marginBottom:4}}>这学期怎么带？</h2>
+    <p className="room-title">选 1 张，决定全班的教学方向</p>
+    <div className="cards">
+	      {drawn.map(c=>{const cat=D.CATS[c.cat];
+	        const skin=TASK_SKIN[c.cat]||TASK_SKIN.study;
+	        return(<div key={c.id} className="tcard" style={{backgroundImage:`url("${uiPath(skin)}")`}} onClick={()=>onPick(c)}>
+	          <span className="cat" style={{background:cat.color}}>{cat.name}</span>
+	          <h4>{c.title}</h4><p>{c.desc}</p>
+	          <div className="fx">
+	            {c.fx.study?`学习+${c.fx.study} `:''}{c.fx.interest?`兴趣${c.fx.interest>0?'+':''}${c.fx.interest} `:''}
+	            {c.fx.press?`压力${c.fx.press>0?'+':''}${c.fx.press} `:''}{c.fx.trust?`信任+${c.fx.trust}`:''}</div>
+        </div>);
+      })}
+    </div>
+  </div>);
+}
+
+/* ---- 学期结算 ---- */
+	function Settle({state,onContinue}){
+	  const evt=typeof state.pendingEvent==='string'?{text:state.pendingEvent,scene:'ending_office'}:(state.pendingEvent||{text:'这一学期安静地过去了。',scene:'ending_office'});
+	  return(<div className="stage">
+	    <h2 className="serif" style={{textAlign:'center',fontSize:17,marginBottom:8}}>第{state.term}学期 · 这一学期</h2>
+	    <div className="settle-scene" style={{backgroundImage:`url("${scenePath(evt.scene)}")`}}>
+	      <div className="dlg-box" style={{margin:'0 auto',maxWidth:560,width:'100%'}}>
+	        <div className="dlg-text">{evt.text}</div>
+	      </div>
+	    </div>
+    <div style={{margin:'12px auto',maxWidth:560,fontSize:13,color:'var(--soft)',lineHeight:1.9}}>
+      {state.log.map((l,i)=><div key={i}>{l}</div>)}
+    </div>
+    <div style={{textAlign:'center'}}><button className="btn warm" onClick={onContinue}>
+      {state.term>=D.TERMS?'查看结局':'进入下一学期 ▶'}</button></div>
+  </div>);
+}
+
+/* ---- 结局 ---- */
+function Ending({result,onRestart}){
+  const arch=result.arch;
+  const head={丰收:'山,他们翻过去了',及格:'有人走了出去,也有遗憾',遗憾:'山,到底是高了点'}[arch];
+  let body;
+  const cn=n=>['零','一','两','三','四','五','六','七','八','九'][n]||n;
+  if(arch==='丰收') body=`${cn(result.out)}个孩子走出了大山${result.dropped===0?'。一个都没少。':'。'}`;
+  else if(arch==='及格') body=`${cn(result.out)}个孩子走出了大山${result.dropped>0?`，可惜少了${cn(result.dropped)}个。`:'，剩下的还在路上。'}`;
+  else body=result.dropped>0?`这一届，没能送出去几个，还走了${cn(result.dropped)}个。`:'这一届，没能送出去几个。';
+  return(<div className="app"><div className="titlepage" style={{background:'linear-gradient(#f7c873,#e8853a)'}}>
+    <svg className="title-mtn" viewBox="0 0 800 200" preserveAspectRatio="none">
+      <path d="M0,120 L120,40 L240,100 L370,20 L500,90 L620,36 L740,88 L800,60 L800,200 L0,200 Z" fill="#8a5a44" opacity=".7"/>
+      <path d="M0,200 L0,160 Q400,120 800,164 L800,200 Z" fill="#6e4634"/></svg>
+    <div style={{zIndex:2,textAlign:'center'}}>
+      <h1 className="serif" style={{fontSize:34,marginBottom:6}}>山那边</h1>
+      <p style={{letterSpacing:4,marginBottom:16,color:'var(--ink)'}}>谢谢你,老师。</p>
+      <div className="endbox">
+        <div style={{fontSize:16,marginBottom:8}} className="serif">{head}</div>
+        <div>{body}</div>
+        {result.names.length>0 && <div style={{fontSize:12.5,color:'var(--soft)',marginTop:8}}>走出大山:{result.names.join('、')}</div>}
+        <div style={{fontSize:12,color:'var(--soft)',marginTop:10}}>一个田埂的故事,一辆破自行车,一间漏雨的教室——和你。</div>
+      </div>
+      <button className="btn" style={{marginTop:18}} onClick={onRestart}>回到山那边</button>
+    </div>
+  </div></div>);
+}
+
+/* =========================== 主应用 =========================== */
+function App(){
+  const [state,dispatch]=useReducer(E.reducer, null, ()=>{
+    return null;  // 先到标题页
+  });
+  const [screen,setScreen]=useState('title');
+	  const [panel,setPanel]=useState(null);      // shop|log|chatpick
+	  const [toasts,setToasts]=useState([]);
+	  const [busy,setBusy]=useState(false);       // AI 等待
+	  const [replying,setReplying]=useState(false);
+
+  const toast=useCallback(msg=>{ const id=Math.random(); setToasts(t=>[...t,{id,msg}]); setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),1800); },[]);
+
+  // 自动存档
+  useEffect(()=>{ if(state) E.store.set(SAVE_KEY, state); },[state]);
+
+	  const startNew=()=>{ dispatch({type:'NEW'}); setScreen('game'); };
+  const loadGame=()=>{ const s=E.store.get(SAVE_KEY); if(E.isValidSave(s)){ dispatch({type:'LOAD',save:s}); setScreen('game'); } else { E.store.del(SAVE_KEY); toast('存档无效,已清除'); } };
+
+  // 私聊：先开选择页 → 选人 → (AI或本地)生成对话 → dispatch OPEN_DIALOGUE
+	  const onPickChat=async(stu)=>{
+	    setPanel(null); setBusy(true);
+	    const tpl=D.CHAT[stu.id];
+	    let dlg=null;
+		    const persona=await loadPersona(stu.id) || personaFallback(stu);
+		    const ai=await AI.call('chat',{
+		      id:stu.id,name:stu.name,per:stu.per,family:stu.family,
+		      talent:D.TALENTS[stu.talent].name,trust:stu.trust,interest:stu.interest,
+		      study:Math.round(stu.study),press:Math.round(stu.press),fam:Math.round(stu.fam),
+		      term:state.term,persona,memory:characterMemory(state,stu.id),
+		      recentLog:(state.log||[]).slice(-4)
+		    },15000);
+	    if(ai&&(Array.isArray(ai.lines)||ai.lead)&&Array.isArray(ai.opts)&&ai.opts.length){
+	      const lead=String(ai.lead || (ai.lines&&ai.lines[0]&&(ai.lines[0].text||ai.lines[0].t)) || tpl.lead).slice(0,400);
+	      const teacherOpen={speaker:'老师',text:String(ai.teacherOpen||localTeacherOpening(stu,'chat')).slice(0,140),portraitId:'teacher',mc:true};
+	      dlg={who:stu.name,mc:false,ai:true,kind:'chat',scene:'classroom_topdown',studentId:stu.id,portraitId:stu.id,lead,
+	        phase:'running',turnCount:0,maxMessages:D.MAX_CHAT_MESSAGES,
+	        lines:[teacherOpen,...normalizeLines(ai.lines,stu.name,lead,stu.id)].slice(-D.MAX_CHAT_MESSAGES),
+	        baseOpts:tpl.opts,memoryNote:ai.memoryNote,memorySummary:ai.memorySummary,memoryCount:(characterMemory(state,stu.id).interactions||[]).length,
+	        opts:ai.opts.slice(0,3).map((o,i)=>({t:String(o.t).slice(0,40),fx:tpl.opts[i]?tpl.opts[i].fx:{trust:2},unlock:tpl.opts[i]&&tpl.opts[i].unlock,newPer:ai.newPer,memoryNote:ai.memoryNote,memorySummary:ai.memorySummary}))};
+	    }else{
+	      const teacherOpen={speaker:'老师',text:localTeacherOpening(stu,'chat'),portraitId:'teacher',mc:true};
+	      dlg={who:stu.name,mc:false,kind:'chat',scene:'classroom_topdown',studentId:stu.id,portraitId:stu.id,lead:tpl.lead,
+	        phase:'running',turnCount:0,maxMessages:D.MAX_CHAT_MESSAGES,
+	        lines:[teacherOpen,{speaker:stu.name,text:tpl.lead,portraitId:stu.id,mc:false}],opts:tpl.opts,baseOpts:tpl.opts,memoryCount:(characterMemory(state,stu.id).interactions||[]).length};
+	    }
+    setBusy(false);
+    dispatch({type:'OPEN_DIALOGUE',dialogue:dlg,cost:true});
+  };
+	  // 家访：先选择小房子/家庭 → 选人 → (AI或本地)生成家访对话
+	  const onPickVisit=async(target)=>{
+	    if(!target) return;
+		    setPanel(null);
+		    setBusy(true);
+		    const tpl=D.VISIT[target.id]||D.VISIT._default;
+	    let lead=tpl.lead.replace(/\{S\}/g,target.name), opts=tpl.opts, ai=null;
+		    const persona=await loadPersona(target.id) || personaFallback(target);
+		    ai=await AI.call('visit',{
+		      id:target.id,name:target.name,family:target.family,fam:target.fam,
+		      trust:target.trust,study:Math.round(target.study),press:Math.round(target.press),
+			      term:state.term,persona,memory:characterMemory(state,target.id),
+			      recentLog:(state.log||[]).slice(-4)
+			    },15000);
+	    let dlg;
+	    if(ai&&(Array.isArray(ai.lines)||ai.lead)&&Array.isArray(ai.opts)&&ai.opts.length){
+	      const aiLead=String(ai.lead || (ai.lines&&ai.lines[0]&&(ai.lines[0].text||ai.lines[0].t)) || lead).slice(0,400);
+	      const teacherOpen={speaker:'老师',text:String(ai.teacherOpen||localTeacherOpening(target,'visit')).slice(0,140),portraitId:'teacher',mc:true};
+	      dlg={who:'家访 · '+target.name,mc:false,ai:true,kind:'visit',scene:tpl.scene||'road',studentId:target.id,portraitId:target.id,lead:aiLead,
+	        phase:'running',turnCount:0,maxMessages:D.MAX_CHAT_MESSAGES,
+	        lines:[teacherOpen,...normalizeLines(ai.lines,'家长',aiLead,target.id)].slice(-D.MAX_CHAT_MESSAGES),
+	        baseOpts:opts,memoryNote:ai.memoryNote,memorySummary:ai.memorySummary,memoryCount:(characterMemory(state,target.id).interactions||[]).length,
+	        opts:ai.opts.slice(0,3).map((o,i)=>({t:String(o.t).slice(0,40),fx:opts[i]?opts[i].fx:{fam:-5},memoryNote:ai.memoryNote,memorySummary:ai.memorySummary}))};
+	    }else{
+	      const teacherOpen={speaker:'老师',text:localTeacherOpening(target,'visit'),portraitId:'teacher',mc:true};
+	      dlg={who:'家访 · '+target.name,mc:false,kind:'visit',scene:tpl.scene||'road',studentId:target.id,portraitId:target.id,lead,
+	        phase:'running',turnCount:0,maxMessages:D.MAX_CHAT_MESSAGES,
+	        lines:[teacherOpen,{speaker:'家长',text:lead,portraitId:target.id,mc:false}],opts,baseOpts:opts,memoryCount:(characterMemory(state,target.id).interactions||[]).length};
+	    }
+	    setBusy(false);
+	    dispatch({type:'OPEN_DIALOGUE',dialogue:dlg,cost:true});
+	  };
+
+	  const resolveDialogue=(opt)=>{
+	    const d=state.dialogue;
+	    dispatch({type:'RESOLVE_DIALOGUE',studentId:d.studentId,fx:opt.fx,unlock:opt.unlock,newPer:opt.newPer,choiceText:opt.t,
+	      memoryNote:opt.memoryNote||d.memoryNote,memorySummary:opt.memorySummary||d.memorySummary,
+	      statusUpdate:opt.statusUpdate,outcomeTag:opt.outcomeTag,settlementTitle:opt.settlementTitle,messages:opt.messages});
+	    if(opt.unlock){ const s=state.students.find(x=>x.id===d.studentId); if(s) toast(`${s.name}的${D.TALENTS[s.talent].name}天赋显现了!`); }
+	  };
+	  const continueDialogue=()=>{
+	    const d=state.dialogue;
+	    if(!d) return;
+	    dispatch({type:'UPDATE_DIALOGUE',dialogue:{...d,phase:'running',settlement:null,opts:d.opts&&d.opts.length?d.opts:[{t:'再多问一句'},{t:'换个角度聊聊'},{t:'先听他说完'}]}});
+	  };
+
+	  const freeReply=async(text, visibleLines)=>{
+	    const d=state.dialogue;
+	    if(!d||!d.studentId||replying) return;
+	    const stu=state.students.find(s=>s.id===d.studentId);
+	    if(!stu) return;
+	    setReplying(true);
+	    const persona=await loadPersona(stu.id) || personaFallback(stu);
+	    const baseLines=(visibleLines&&visibleLines.length?visibleLines:normalizeLines(d.lines,d.who,d.lead,d.portraitId||d.studentId||d.who)).slice(-40);
+	    const ai=await AI.call('reply',{
+	      id:stu.id,name:stu.name,kind:d.kind,persona,memory:characterMemory(state,stu.id),
+	      term:state.term,playerText:text,
+	      turnCount:d.turnCount||0,maxMessages:d.maxMessages||D.MAX_CHAT_MESSAGES,
+	      outcomeTags:Object.keys(outcomeCatalog(d.kind)),
+	      dialogueLines:baseLines.map(x=>({speaker:x.speaker,text:x.text})),
+	      stats:{trust:stu.trust,interest:stu.interest,study:Math.round(stu.study),press:Math.round(stu.press),fam:Math.round(stu.fam)},
+	      recentLog:(state.log||[]).slice(-4)
+	    },15000);
+	    const teacherLine={speaker:'老师',text,portraitId:'teacher',mc:true};
+	    const fallbackSpeaker=d.kind==='visit'?'家长':stu.name;
+	    const aiLines=(ai&&Array.isArray(ai.lines)&&ai.lines.length)
+	      ? normalizeLines(ai.lines,fallbackSpeaker,'',stu.id)
+	      : [{speaker:fallbackSpeaker,text:d.kind==='visit'?'家长沉默了一会儿,把话又咽回半截。':'他低头抠着本子角,像是在重新想你的话。',portraitId:stu.id,mc:false}];
+	    const baseOpts=d.baseOpts||d.opts||[];
+		    const nextOpts=(ai&&Array.isArray(ai.opts)&&ai.opts.length?ai.opts:d.opts||[]).slice(0,3).map((o,i)=>({
+		      t:String(o.t||o.text||o).slice(0,40),
+		      fx:baseOpts[i]?baseOpts[i].fx:(d.kind==='visit'?{fam:-4}:{trust:2}),
+		      unlock:baseOpts[i]&&baseOpts[i].unlock,
+		      newPer:ai&&ai.newPer,
+		      memoryNote:ai&&ai.memoryNote,
+		      memorySummary:ai&&ai.memorySummary
+		    }));
+	    const nextTurn=(d.turnCount||0)+1;
+	    const nextLines=[...baseLines,teacherLine,...aiLines].slice(-(d.maxMessages||D.MAX_CHAT_MESSAGES));
+	    const ready=!!(ai&&ai.settlement&&ai.settlement.ready) || shouldForceSettle(d,nextLines,nextTurn);
+	    const settlement=ready ? buildSettlement(d.kind,ai||{},stu,nextTurn) : null;
+	    if(settlement && !(ai&&ai.settlement&&ai.settlement.ready)) settlement.ready=true;
+	    const nextDialogue={...d,ai:!!ai,phase:settlement?'settlement':'running',turnCount:nextTurn,
+	      lines:nextLines,lead:(aiLines[0]&&aiLines[0].text)||d.lead,opts:nextOpts.length?nextOpts:d.opts,
+	      settlement,memoryNote:ai&&ai.memoryNote||d.memoryNote,memorySummary:ai&&ai.memorySummary||d.memorySummary,
+	      memoryCount:(characterMemory(state,stu.id).interactions||[]).length+1};
+	    dispatch({type:'UPDATE_DIALOGUE',dialogue:nextDialogue});
+	    dispatch({type:'ADD_MEMORY',studentId:stu.id,entry:{
+	      term:state.term,
+	      kind:d.kind,
+	      playerText:text,
+	      note:ai&&ai.memoryNote?ai.memoryNote:`第${state.term}学期${d.kind==='visit'?'家访':'私聊'}:老师说「${text.slice(0,24)}」。`,
+	      summary:ai&&ai.memorySummary,
+	      messages:[teacherLine,...aiLines].map(x=>({speaker:x.speaker,text:x.text})).slice(-12)
+	    }});
+	    setReplying(false);
+	  };
+
+  // 进入新学期时刷新 AI 状态文案（失败用本地）
+  useEffect(()=>{
+    if(screen==='game' && state && state.phase==='classroom' && state.students.some(s=>!s.status)){
+      (async()=>{
+        const ai=await AI.call('status',{students:state.students.filter(s=>!s.dropped).map(s=>({id:s.id,name:s.name,per:s.per,fam:s.fam,press:s.press,interest:s.interest,study:s.study}))},6000);
+        const map={};
+        state.students.forEach(s=>{ map[s.id]= (ai&&ai[s.id])? String(ai[s.id]).slice(0,30) : E.localStatus(s); });
+        dispatch({type:'SET_STATUS',map});
+      })();
+    }
+  },[screen,state&&state.term,state&&state.phase]);
+
+  if(screen==='title' || !state){
+    const has=E.isValidSave(E.store.get(SAVE_KEY));
+    return(<div className="app"><div className="titlepage">
+      <svg className="title-mtn" viewBox="0 0 800 200" preserveAspectRatio="none">
+        <path d="M0,120 L120,40 L240,100 L370,20 L500,90 L620,36 L740,88 L800,60 L800,200 L0,200 Z" fill="#7BA05B" opacity=".6"/>
+        <path d="M0,200 L0,140 L160,90 L320,150 L480,88 L640,146 L800,100 L800,200 Z" fill="#5d7a45" opacity=".8"/>
+        <path d="M0,200 L0,168 Q200,148 400,168 Q600,148 800,170 L800,200 Z" fill="#C8B458"/></svg>
+      <h1 className="serif">山那边</h1><div className="tag">乡村支教 · 九学期</div>
+      <button className="btn warm" style={{zIndex:2,fontSize:16,padding:'12px 36px'}} onClick={startNew}>新的学期</button>
+      {has && <button className="btn ghost" style={{zIndex:2}} onClick={loadGame}>继续支教</button>}
+      <div style={{position:'absolute',bottom:12,zIndex:2,fontSize:11,color:'var(--soft)'}}>翻过那座山,就是另一个世界。</div>
+    </div></div>);
+  }
+
+  if(state.phase==='ending') return <Ending result={state.roundResult} onRestart={()=>{E.store.del(SAVE_KEY);dispatch({type:'NEW'});setScreen('title');}}/>;
+
+  return(<div className="app">
+    <Hud state={state} onShop={()=>setPanel('shop')} onLog={()=>setPanel('log')}/>
+
+    {state.phase==='classroom' && <>
+      <Classroom state={state} dispatch={dispatch} toast={toast}/>
+      <ActionBar state={state} dispatch={dispatch} toast={toast}
+        onChat={()=>setPanel('chatpick')} onVisit={()=>setPanel('visitpick')} onNext={()=>dispatch({type:'NEXT_TERM'})}/>
+    </>}
+
+	    {state.phase==='dialogue' && state.dialogue &&
+	      <Dialogue dialogue={state.dialogue} onResolve={resolveDialogue} onClose={()=>dispatch({type:'CLOSE_DIALOGUE'})}
+	        onFreeReply={(state.dialogue.kind==='chat'||state.dialogue.kind==='visit')?freeReply:null} onContinue={continueDialogue} replying={replying}/>}
+
+    {state.phase==='minigame' &&
+      <Minigame onDone={(amt)=>{dispatch({type:'WORK_DONE',amount:amt});toast(`打工赚了¥${amt}`);}} onCancel={()=>dispatch({type:'CANCEL_MINIGAME'})}/>}
+
+    {state.phase==='taskcard' && state.drawn &&
+      <TaskCard drawn={state.drawn} onPick={(c)=>dispatch({type:'PICK_CARD',card:c})}/>}
+
+    {state.phase==='settle' &&
+      <Settle state={state} onContinue={()=>dispatch({type:'CONTINUE'})}/>}
+
+    {busy && <div className="modal-bg"><div className="modal" style={{textAlign:'center'}}><div className="spinner"/>正在生成对话…</div></div>}
+    {panel==='shop' && <Shop state={state} dispatch={dispatch} toast={toast} onClose={()=>setPanel(null)}/>}
+    {panel==='log' && <ClassLog state={state} onClose={()=>setPanel(null)}/>}
+    {panel==='chatpick' && <ChatPicker state={state} onPick={onPickChat} onClose={()=>setPanel(null)}/>}
+    {panel==='visitpick' && <VisitPicker state={state} onPick={onPickVisit} onClose={()=>setPanel(null)}/>}
+
+    {toasts.map(t=><div key={t.id} className="toast">{t.msg}</div>)}
+  </div>);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "title": "山那边角色人格知识库",
+  "characters": [
+    "teacher",
+    "chen",
+    "damao",
+    "xiaohua",
+    "chouwa",
+    "xingxing",
+    "mumu",
+    "danzai",
+    "goushen",
+    "ahua",
+    "matui"
+  ],
+  "rule": "AI only writes dialogue and status text. Numeric game state, rewards, unlocks, dropouts, and term progression remain deterministic in the local reducer."
+}
