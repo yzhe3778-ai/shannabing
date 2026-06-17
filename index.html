@@ -7,6 +7,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
 <style>
 :root{
   --earth:#D9A441;--rice:#7BA05B;--dusk:#E8853A;--paper:#F5EFE0;
@@ -93,7 +95,7 @@ body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;b
 			.chat-head-main{flex:1;min-width:0}.chat-title{font-size:17px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 0 rgba(0,0,0,.45)}.chat-sub{font-size:11px;color:rgba(255,255,255,.68);margin-top:2px}
 			.chat-close{border:none;background:rgba(255,255,255,.12);color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:4px 7px;border-radius:4px}
 			.chat-close:active{background:rgba(255,255,255,.24)}
-			.chat-messages{position:absolute;left:clamp(168px,32vw,320px);right:18px;top:72px;bottom:178px;z-index:3;min-height:0;overflow-y:auto;padding:0 2px 10px;display:flex;flex-direction:column;justify-content:flex-end;gap:9px;background:transparent}
+			.chat-messages{position:absolute;left:clamp(168px,32vw,320px);right:18px;top:72px;bottom:118px;z-index:3;min-height:0;overflow-y:auto;padding:0 2px 10px;display:flex;flex-direction:column;justify-content:flex-end;gap:9px;background:transparent}
 			.chat-messages::-webkit-scrollbar{width:5px}.chat-messages::-webkit-scrollbar-thumb{background:rgba(0,0,0,.38);border-radius:10px}
 			.chat-row{display:flex;align-items:flex-end;gap:8px;max-width:min(620px,100%)}
 			.chat-row.mine{align-self:flex-end;flex-direction:row-reverse}
@@ -107,15 +109,16 @@ body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;b
 			.chat-typing i{width:5px;height:5px;border-radius:50%;background:#fff;opacity:.55;animation:typing 1s infinite}
 			.chat-typing i:nth-child(2){animation-delay:.15s}.chat-typing i:nth-child(3){animation-delay:.3s}
 			@keyframes typing{50%{transform:translateY(-3px);opacity:1}}
-			.chat-composer{position:absolute;left:clamp(158px,30vw,318px);right:14px;bottom:14px;z-index:4;padding:13px 14px 14px;background:rgba(12,12,12,.68);border:2px solid rgba(255,255,255,.76);box-shadow:10px 10px 0 rgba(0,0,0,.22);backdrop-filter:blur(7px)}
-			.chat-suggestions{position:absolute;left:50%;bottom:calc(100% + 13px);transform:translateX(-50%);width:min(340px,82%);display:flex;flex-direction:column;gap:9px;overflow:visible;padding:0}
-			.chat-chip{width:100%;border:1.5px solid rgba(255,255,255,.68);border-radius:2px;background:rgba(18,18,18,.62);color:#fff;padding:8px 12px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;white-space:normal;text-align:center;text-shadow:0 2px 0 rgba(0,0,0,.38);box-shadow:6px 6px 0 rgba(0,0,0,.18);transition:transform .12s,background .18s,border-color .18s}
+			.chat-composer{position:absolute;left:clamp(158px,30vw,318px);right:14px;bottom:14px;z-index:4;padding:9px 10px 10px;background:rgba(12,12,12,.62);border:1.5px solid rgba(255,255,255,.72);box-shadow:7px 7px 0 rgba(0,0,0,.2);backdrop-filter:blur(7px)}
+			.chat-suggestions{width:100%;display:flex;flex-direction:row;flex-wrap:nowrap;gap:6px;overflow:hidden;padding:0 0 6px;margin:0 0 7px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.38) transparent}
+			.chat-suggestions::-webkit-scrollbar{height:4px}.chat-suggestions::-webkit-scrollbar-thumb{background:rgba(255,255,255,.38);border-radius:10px}
+			.chat-chip{flex:1 1 0;min-width:0;border:1.5px solid rgba(255,255,255,.62);border-radius:2px;background:rgba(18,18,18,.54);color:#fff;padding:5px 10px;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;text-shadow:0 2px 0 rgba(0,0,0,.32);box-shadow:4px 4px 0 rgba(0,0,0,.16);transition:transform .12s,background .18s,border-color .18s}
 			.chat-chip:hover{background:rgba(0,0,0,.76);border-color:#fff}
 			.chat-chip:active{transform:translateY(1px)}
 			.chat-input-row{display:flex;gap:8px;align-items:center}
-			.chat-input-row input{flex:1;min-width:0;border:1.5px solid rgba(255,255,255,.72);border-radius:2px;background:rgba(255,255,255,.88);color:#111;padding:10px 12px;font:inherit;font-size:14px;font-weight:650}
+			.chat-input-row input{flex:1;min-width:0;border:1.5px solid rgba(255,255,255,.72);border-radius:2px;background:rgba(255,255,255,.88);color:#111;padding:8px 10px;font:inherit;font-size:13px;font-weight:650}
 			.chat-input-row input:focus{outline:2px solid rgba(255,255,255,.42);border-color:#fff}
-			.chat-send{border:none;border-radius:2px;background:#fff;color:#111;padding:10px 14px;font:inherit;font-size:13px;font-weight:850;cursor:pointer;white-space:nowrap}
+			.chat-send{border:none;border-radius:2px;background:#fff;color:#111;padding:8px 12px;font:inherit;font-size:12.5px;font-weight:850;cursor:pointer;white-space:nowrap}
 			.chat-send:disabled{opacity:.45;cursor:not-allowed}
 			.settle-card{border:1.5px solid rgba(255,255,255,.72);border-radius:2px;background:rgba(12,12,12,.7);padding:12px;box-shadow:7px 7px 0 rgba(0,0,0,.22);color:#fff}
 			.settle-card h4{font-size:15px;margin-bottom:5px;color:#fff}
@@ -220,14 +223,36 @@ body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;b
 	@media(max-width:540px){
 	  .chat-head{top:10px;right:10px;min-width:0;width:calc(100% - 20px);box-shadow:5px 5px 0 rgba(0,0,0,.16)}
 	  .chat-live-portrait{left:-48px;bottom:122px;width:205px;height:58vh;opacity:.96}
-	  .chat-messages{left:112px;right:10px;top:72px;bottom:188px;gap:7px}
+	  .chat-messages{left:112px;right:10px;top:72px;bottom:116px;gap:7px}
 	  .chat-bubble{font-size:13px;padding:8px 9px;box-shadow:5px 5px 0 rgba(0,0,0,.16)}
-	  .chat-composer{left:10px;right:10px;bottom:10px;padding:11px;box-shadow:7px 7px 0 rgba(0,0,0,.2)}
-	  .chat-suggestions{width:min(330px,90%);gap:7px;bottom:calc(100% + 9px)}
-	  .chat-chip{font-size:13px;padding:7px 10px}
-	  .chat-input-row input{font-size:13px;padding:9px 10px}
-	  .chat-send{padding:9px 12px}
+	  .chat-composer{left:10px;right:10px;bottom:10px;padding:8px 9px 9px;box-shadow:6px 6px 0 rgba(0,0,0,.18)}
+	  .chat-suggestions{gap:6px;overflow-x:auto;overflow-y:hidden;padding-bottom:5px;margin-bottom:6px}
+	  .chat-chip{flex:0 0 auto;max-width:74vw;font-size:12px;padding:5px 9px}
+	  .chat-input-row input{font-size:12.5px;padding:8px 9px}
+	  .chat-send{padding:8px 11px}
 	}
+	/* ===== 动效 / 转场 / 反馈特效 ===== */
+	@keyframes phase-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+	@keyframes modal-in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+	@keyframes seat-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+	.stage{animation:phase-in .34s ease both}
+	.modal{animation:modal-in .24s ease both}
+	.titlepage{animation:phase-in .5s ease both}
+	.seat:not(.dragging):not(.gone){animation:seat-bob 3.4s ease-in-out infinite}
+	.seat:nth-child(2){animation-delay:.4s}.seat:nth-child(3){animation-delay:.8s}.seat:nth-child(4){animation-delay:1.2s}
+	.seat:nth-child(5){animation-delay:.6s}.seat:nth-child(6){animation-delay:1s}.seat:nth-child(7){animation-delay:.2s}
+	.seat:nth-child(8){animation-delay:1.4s}.seat:nth-child(9){animation-delay:.9s}
+	.seat:active,.seat.over{animation:none}
+	.actbtn:active,.choice:active,.chat-chip:active,.tcard:active,.house-card:active{transform:scale(.96)}
+	@keyframes float-up{0%{opacity:0;transform:translate(-50%,4px) scale(.85)}15%{opacity:1;transform:translate(-50%,-2px) scale(1.05)}100%{opacity:0;transform:translate(-50%,-46px) scale(1)}}
+	.float-num{position:fixed;z-index:90;pointer-events:none;font-weight:800;font-size:17px;text-shadow:0 2px 4px rgba(0,0,0,.35),0 0 2px rgba(255,255,255,.5);color:var(--rice);transform:translate(-50%,0);animation:float-up 1.05s ease-out forwards;white-space:nowrap}
+	@keyframes app-shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+	.fx-shake{animation:app-shake .5s cubic-bezier(.36,.07,.19,.97)}
+	@keyframes flash-fade{0%{opacity:0}25%{opacity:.55}100%{opacity:0}}
+	.fx-flash{position:fixed;inset:0;z-index:85;pointer-events:none;background:rgba(91,127,160,.5);animation:flash-fade .5s ease-out forwards}
+	.hud .mute{margin-left:2px;background:rgba(255,255,255,.1);border:none;color:var(--paper);cursor:pointer;font-size:14px;border-radius:50%;width:28px;height:28px;line-height:1}
+	.hud .mute:active{transform:scale(.9)}
+	@media(prefers-reduced-motion:reduce){.stage,.modal,.titlepage,.seat,.float-num,.fx-shake{animation:none!important}}
 	</style>
 </head>
 <body>
@@ -704,6 +729,115 @@ window.AI = (function(){
 })();
 </script>
 
+<script>
+/* =================================================================
+   音效层 · AUDIO — BGM(优先用 assets/audio 里的文件,缺省静音) +
+   SFX(WebAudio 合成,零素材即可发声;放了同名文件会优先用文件)。
+   静音状态持久化;首次用户手势时解锁音频。
+   ================================================================= */
+window.AUDIO = (function(){
+  let ctx=null, masterMuted=false, unlocked=false;
+  const bgmCache={}, sfxFiles={}; let curBgm=null;
+  try{ masterMuted = localStorage.getItem('shan_muted')==='1'; }catch(e){}
+
+  function ac(){ if(!ctx){ try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ ctx=null; } } return ctx; }
+  function unlock(){ if(unlocked) return; unlocked=true; const c=ac(); if(c&&c.state==='suspended') c.resume();
+    if(window.Howler&&Howler.ctx&&Howler.ctx.state==='suspended'){ try{Howler.ctx.resume();}catch(e){} } }
+
+  // —— 合成音效 ——
+  function tone(specs){
+    const c=ac(); if(!c||masterMuted) return; const now=c.currentTime;
+    specs.forEach(s=>{
+      const o=c.createOscillator(), g=c.createGain();
+      o.type=s.type||'sine'; o.frequency.setValueAtTime(s.f, now+(s.t||0));
+      if(s.f2) o.frequency.exponentialRampToValueAtTime(s.f2, now+(s.t||0)+(s.d||0.12));
+      const peak=(s.g||0.18), at=s.a||0.005, dur=s.d||0.12;
+      g.gain.setValueAtTime(0.0001, now+(s.t||0));
+      g.gain.exponentialRampToValueAtTime(peak, now+(s.t||0)+at);
+      g.gain.exponentialRampToValueAtTime(0.0001, now+(s.t||0)+at+dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(now+(s.t||0)); o.stop(now+(s.t||0)+at+dur+0.02);
+    });
+  }
+  const SYNTH={
+    tap:   ()=>tone([{f:430,type:'triangle',g:0.10,d:0.05}]),
+    page:  ()=>tone([{f:300,type:'sine',g:0.08,d:0.05}]),
+    card:  ()=>tone([{f:520,type:'triangle',g:0.12,d:0.07},{f:760,type:'triangle',g:0.10,d:0.08,t:0.06}]),
+    coin:  ()=>tone([{f:880,type:'square',g:0.10,d:0.05},{f:1320,type:'square',g:0.10,d:0.10,t:0.05}]),
+    up:    ()=>tone([{f:560,f2:840,type:'sine',g:0.14,d:0.16}]),
+    down:  ()=>tone([{f:440,f2:240,type:'sine',g:0.12,d:0.18}]),
+    buy:   ()=>tone([{f:660,type:'triangle',g:0.12,d:0.07},{f:990,type:'triangle',g:0.10,d:0.09,t:0.06}]),
+    talent:()=>tone([{f:660,type:'sine',g:0.13,d:0.10},{f:880,type:'sine',g:0.13,d:0.10,t:0.09},{f:1320,type:'sine',g:0.13,d:0.16,t:0.18}]),
+    drop:  ()=>tone([{f:240,f2:150,type:'sawtooth',g:0.13,d:0.4}]),
+    win:   ()=>tone([{f:523,type:'sine',g:0.14,d:0.14},{f:659,type:'sine',g:0.14,d:0.14,t:0.12},{f:784,type:'sine',g:0.14,d:0.14,t:0.24},{f:1046,type:'sine',g:0.15,d:0.3,t:0.36}]),
+    toast: ()=>tone([{f:700,type:'sine',g:0.08,d:0.06}])
+  };
+  function sfx(name){ if(masterMuted) return; unlock();
+    if(sfxFiles[name]){ try{ sfxFiles[name].play(); return; }catch(e){} }
+    (SYNTH[name]||SYNTH.tap)();
+  }
+
+  // —— BGM(文件可选,缺省静默) ——
+  const BGM_SRC={ theme:'assets/audio/bgm/theme.mp3', class:'assets/audio/bgm/class.mp3', chat:'assets/audio/bgm/chat.mp3', ending:'assets/audio/bgm/ending.mp3' };
+  function bgm(name){
+    if(curBgm===name) return; curBgm=name;
+    if(!window.Howl){ return; }
+    Object.keys(bgmCache).forEach(k=>{ const h=bgmCache[k]; if(k!==name&&h&&h.playing&&h.playing()) h.fade(h.volume(),0,600); });
+    if(!name) return;
+    if(!bgmCache[name]){
+      try{ bgmCache[name]=new Howl({src:[BGM_SRC[name]],loop:true,volume:0,html5:true,onloaderror:()=>{bgmCache[name]=null;}}); }
+      catch(e){ bgmCache[name]=null; }
+    }
+    const h=bgmCache[name]; if(!h||masterMuted) return;
+    unlock(); try{ if(!h.playing()) h.play(); h.fade(0,0.4,800); }catch(e){}
+  }
+  function setMuted(m){ masterMuted=!!m; try{ localStorage.setItem('shan_muted', m?'1':'0'); }catch(e){}
+    if(window.Howler){ try{ Howler.mute(masterMuted); }catch(e){} }
+    if(masterMuted){ Object.keys(bgmCache).forEach(k=>{ const h=bgmCache[k]; try{ h&&h.pause&&h.pause(); }catch(e){} }); }
+    else { const c=curBgm; curBgm=null; bgm(c); }
+  }
+  function isMuted(){ return masterMuted; }
+
+  // 首次手势解锁 + 通用点击音
+  document.addEventListener('pointerdown',(e)=>{ unlock();
+    const t=e.target.closest&&e.target.closest('button,.actbtn,.choice,.chat-chip,.tcard,.house-card,.stu-row,.seat-info,.chat-close,.chat-send');
+    if(t && !t.disabled){ sfx('tap'); }
+  }, true);
+
+  return { sfx, bgm, setMuted, isMuted, unlock };
+})();
+
+/* =================================================================
+   特效层 · FX — 命令式挂到 DOM,与 React 解耦(飘字/撒花/抖动/闪光)
+   ================================================================= */
+window.FX = (function(){
+  function float(x,y,text,color){
+    const el=document.createElement('div'); el.className='float-num'; el.textContent=text;
+    if(color) el.style.color=color;
+    el.style.left=x+'px'; el.style.top=y+'px';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 1100);
+  }
+  function floatAt(ev,text,color){ if(!ev) return;
+    const x=ev.clientX||(ev.touches&&ev.touches[0]&&ev.touches[0].clientX)||window.innerWidth/2;
+    const y=ev.clientY||(ev.touches&&ev.touches[0]&&ev.touches[0].clientY)||window.innerHeight/2;
+    float(x,y-10,text,color);
+  }
+  function shake(){ const a=document.querySelector('.app'); if(!a) return; a.classList.remove('fx-shake'); void a.offsetWidth; a.classList.add('fx-shake'); setTimeout(()=>a.classList.remove('fx-shake'),520); }
+  function flash(color){ const el=document.createElement('div'); el.className='fx-flash'; if(color) el.style.background=color; document.body.appendChild(el); setTimeout(()=>el.remove(),520); }
+  function celebrate(){ if(!window.confetti) return; window.confetti({particleCount:80,spread:70,origin:{y:0.6},colors:['#D9A441','#7BA05B','#E8853A','#C99A2E','#FFF']}); }
+  function bigCelebrate(){ if(!window.confetti) return;
+    const end=Date.now()+1200;
+    (function frame(){
+      window.confetti({particleCount:5,angle:60,spread:55,origin:{x:0},colors:['#D9A441','#E8853A','#7BA05B']});
+      window.confetti({particleCount:5,angle:120,spread:55,origin:{x:1},colors:['#D9A441','#E8853A','#7BA05B']});
+      if(Date.now()<end) requestAnimationFrame(frame);
+    })();
+  }
+  return { float, floatAt, shake, flash, celebrate, bigCelebrate };
+})();
+</script>
+
 <script type="text/babel" data-presets="react">
 /* =================================================================
    界面层 · UI（React 组件）
@@ -884,12 +1018,15 @@ function useTyper(text,speed){
 /* ---- 顶栏 ---- */
 function Hud({state,onShop,onLog}){
   const yr=1997+state.term;
+  const [muted,setMuted]=useState(window.AUDIO?AUDIO.isMuted():false);
+  const toggleMute=()=>{ const m=!muted; setMuted(m); window.AUDIO&&AUDIO.setMuted(m); };
   return(<div className="hud">
     <span className="year">{yr}年 · 第{state.term}/{D.TERMS}学期</span>
     <span className="stat">💰¥{state.fund}</span>
     <span className="stat">⚡{[...Array(D.AP)].map((_,i)=><i key={i} className={'ap-dot'+(i<state.ap?'':' used')}/>)}</span>
     <button className="btn small" onClick={onShop}>🛒商店</button>
     <button className="btn small ghost" onClick={onLog}>📔日志</button>
+    <button className="mute" onClick={toggleMute} title={muted?'取消静音':'静音'} aria-label="静音开关">{muted?'🔇':'🔊'}</button>
   </div>);
 }
 
@@ -1133,7 +1270,7 @@ function VisitPicker({state,onPick,onClose}){
       {alive.map(s=>{
         const dis=pick.onlyTalent&&!s.talentShown;
         return <button key={s.id} className="btn small" disabled={dis} style={{margin:3}}
-          onClick={()=>{dispatch({type:'BUY',item:pick.id,studentId:s.id});toast(`给${s.name}买了${pick.name}`);setPick(null);}}>
+          onClick={(e)=>{dispatch({type:'BUY',item:pick.id,studentId:s.id});window.AUDIO&&AUDIO.sfx('buy');window.FX&&FX.floatAt(e,pick.desc,'#7BA05B');toast(`给${s.name}买了${pick.name}`);setPick(null);}}>
           {s.name}{dis?'(无天赋)':''}</button>;
       })}
       <div><button className="btn small ghost" style={{marginTop:8}} onClick={()=>setPick(null)}>返回</button></div>
@@ -1254,12 +1391,12 @@ function Minigame({onDone,onCancel}){
     return()=>{clearInterval(spawn);clearInterval(tick);};
   },[]);
   useEffect(()=>{ if(time<=0){ const fund=Math.min(200, 40+score); setTimeout(()=>onDone(fund),300);} },[time]);
-  const grab=(c)=>{ setScore(s=>s+c.v); setCoins(cs=>cs.filter(x=>x.id!==c.id)); };
+  const grab=(c,e)=>{ setScore(s=>s+c.v); setCoins(cs=>cs.filter(x=>x.id!==c.id)); window.AUDIO&&AUDIO.sfx('coin'); window.FX&&FX.floatAt(e,'+'+c.v,'#D9A441'); };
   return(<div className="stage">
     <div className="room-title">点金币赚基金！手快有，慢了就没了（保底 ¥40）</div>
     <div className="mini" ref={areaRef}>
       <div className="mini-hud"><span>⏱ {time}s</span><span>💰 {Math.min(200,40+score)}</span></div>
-      {coins.map(c=>(<div key={c.id} className="coin" style={{left:c.x+'%',top:c.y+'%'}} onPointerDown={()=>grab(c)}>¥</div>))}
+      {coins.map(c=>(<div key={c.id} className="coin" style={{left:c.x+'%',top:c.y+'%'}} onPointerDown={(e)=>grab(c,e)}>¥</div>))}
     </div>
     <div style={{textAlign:'center',marginTop:8}}><button className="btn small ghost" onClick={onCancel}>放弃打工</button></div>
   </div>);
@@ -1288,6 +1425,7 @@ function Minigame({onDone,onCancel}){
 /* ---- 学期结算 ---- */
 	function Settle({state,onContinue}){
 	  const evt=typeof state.pendingEvent==='string'?{text:state.pendingEvent,scene:'ending_office'}:(state.pendingEvent||{text:'这一学期安静地过去了。',scene:'ending_office'});
+	  useEffect(()=>{ if((state.log||[]).some(l=>String(l).indexOf('❌')>=0)){ window.AUDIO&&AUDIO.sfx('drop'); window.FX&&FX.shake(); window.FX&&FX.flash('rgba(80,80,90,.45)'); } },[]);
 	  return(<div className="stage">
 	    <h2 className="serif" style={{textAlign:'center',fontSize:17,marginBottom:8}}>第{state.term}学期 · 这一学期</h2>
 	    <div className="settle-scene" style={{backgroundImage:`url("${scenePath(evt.scene)}")`}}>
@@ -1312,10 +1450,16 @@ function Ending({result,onRestart}){
   if(arch==='丰收') body=`${cn(result.out)}个孩子走出了大山${result.dropped===0?'。一个都没少。':'。'}`;
   else if(arch==='及格') body=`${cn(result.out)}个孩子走出了大山${result.dropped>0?`，可惜少了${cn(result.dropped)}个。`:'，剩下的还在路上。'}`;
   else body=result.dropped>0?`这一届，没能送出去几个，还走了${cn(result.dropped)}个。`:'这一届，没能送出去几个。';
-  return(<div className="app"><div className="titlepage" style={{background:'linear-gradient(#f7c873,#e8853a)'}}>
+  useEffect(()=>{
+    if(arch==='丰收'){ window.AUDIO&&AUDIO.sfx('win'); window.FX&&FX.bigCelebrate(); }
+    else if(arch==='及格'&&result.out>0){ window.AUDIO&&AUDIO.sfx('up'); window.FX&&FX.celebrate(); }
+    else { window.AUDIO&&AUDIO.sfx('down'); }
+  },[]);
+  const endBg={background:`linear-gradient(rgba(247,200,115,.5),rgba(232,133,58,.62)),url("${scenePath('ending_office')}") center/cover no-repeat`};
+  return(<div className="app"><div className="titlepage" style={endBg}>
     <svg className="title-mtn" viewBox="0 0 800 200" preserveAspectRatio="none">
-      <path d="M0,120 L120,40 L240,100 L370,20 L500,90 L620,36 L740,88 L800,60 L800,200 L0,200 Z" fill="#8a5a44" opacity=".7"/>
-      <path d="M0,200 L0,160 Q400,120 800,164 L800,200 Z" fill="#6e4634"/></svg>
+      <path d="M0,120 L120,40 L240,100 L370,20 L500,90 L620,36 L740,88 L800,60 L800,200 L0,200 Z" fill="#8a5a44" opacity=".55"/>
+      <path d="M0,200 L0,160 Q400,120 800,164 L800,200 Z" fill="#6e4634" opacity=".8"/></svg>
     <div style={{zIndex:2,textAlign:'center'}}>
       <h1 className="serif" style={{fontSize:34,marginBottom:6}}>山那边</h1>
       <p style={{letterSpacing:4,marginBottom:16,color:'var(--ink)'}}>谢谢你,老师。</p>
@@ -1341,7 +1485,7 @@ function App(){
 	  const [busy,setBusy]=useState(false);       // AI 等待
 	  const [replying,setReplying]=useState(false);
 
-  const toast=useCallback(msg=>{ const id=Math.random(); setToasts(t=>[...t,{id,msg}]); setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),1800); },[]);
+  const toast=useCallback(msg=>{ const id=Math.random(); setToasts(t=>[...t,{id,msg}]); window.AUDIO&&AUDIO.sfx('toast'); setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),1800); },[]);
 
   // 自动存档
   useEffect(()=>{ if(state) E.store.set(SAVE_KEY, state); },[state]);
@@ -1417,7 +1561,7 @@ function App(){
 	    dispatch({type:'RESOLVE_DIALOGUE',studentId:d.studentId,fx:opt.fx,unlock:opt.unlock,newPer:opt.newPer,choiceText:opt.t,
 	      memoryNote:opt.memoryNote||d.memoryNote,memorySummary:opt.memorySummary||d.memorySummary,
 	      statusUpdate:opt.statusUpdate,outcomeTag:opt.outcomeTag,settlementTitle:opt.settlementTitle,messages:opt.messages});
-	    if(opt.unlock){ const s=state.students.find(x=>x.id===d.studentId); if(s) toast(`${s.name}的${D.TALENTS[s.talent].name}天赋显现了!`); }
+	    if(opt.unlock){ const s=state.students.find(x=>x.id===d.studentId); if(s){ toast(`${s.name}的${D.TALENTS[s.talent].name}天赋显现了!`); window.AUDIO&&AUDIO.sfx('talent'); window.FX&&FX.celebrate(); } }
 	  };
 	  const continueDialogue=()=>{
 	    const d=state.dialogue;
@@ -1488,6 +1632,17 @@ function App(){
       })();
     }
   },[screen,state&&state.term,state&&state.phase]);
+
+  // 背景音乐随页面切换（无音频文件时静默,不报错）
+  useEffect(()=>{
+    if(!window.AUDIO) return;
+    const phase=state&&state.phase;
+    let track='class';
+    if(screen!=='game') track='theme';
+    else if(phase==='ending') track='ending';
+    else if(phase==='dialogue' && state.dialogue && (state.dialogue.kind==='chat'||state.dialogue.kind==='visit')) track='chat';
+    AUDIO.bgm(track);
+  },[screen,state&&state.phase,state&&state.dialogue&&state.dialogue.kind]);
 
   if(screen==='title' || !state){
     const has=E.isValidSave(E.store.get(SAVE_KEY));
