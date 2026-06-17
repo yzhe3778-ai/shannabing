@@ -968,12 +968,12 @@ function ActionBar({state,dispatch,onChat,onVisit,onNext,toast}){
 				      <div className="chat-live-portrait"><CharacterPortrait id={livePortraitId} label={dialogue.who}/></div>
 				      <div className="chat-shell">
 			        <div className="chat-head">
+			          <button className="chat-close" onClick={onClose} aria-label="关闭对话" style={{fontSize:14,fontWeight:600,padding:'4px 10px',marginRight:12,order:-1}}>← 返回</button>
 			          <Avatar seed={dialogue.studentId||dialogue.portraitId||dialogue.who} size={42}/>
 			          <div className="chat-head-main">
 			            <div className="chat-title">{dialogue.who}</div>
 			            <div className="chat-sub">{sub}{dialogue.ai?' · AI':''}{dialogue.memoryCount>0?` · 记忆 ${dialogue.memoryCount}`:''}</div>
 			          </div>
-			          <button className="chat-close" onClick={onClose} aria-label="关闭对话">×</button>
 			        </div>
 			        <div className="chat-messages" ref={chatRef}>
 			          {lines.map((line,i)=>{
@@ -1054,7 +1054,10 @@ function ActionBar({state,dispatch,onChat,onVisit,onNext,toast}){
 /* ---- 私聊前置选择页 ---- */
 function ChatPicker({state,onPick,onClose}){
   return(<div className="modal-bg" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}>
-    <h3>找个孩子聊聊 <button className="btn small ghost" onClick={onClose}>✕</button></h3>
+    <div style={{textAlign:'left',marginBottom:8}}>
+      <button className="btn ghost" onClick={onClose}>← 返回主页面</button>
+    </div>
+    <h3>找个孩子聊聊</h3>
     {state.students.filter(s=>!s.dropped).map(s=>(
       <div key={s.id} className="stu-row" onClick={()=>onPick(s)}>
         <Avatar seed={s.id} size={40}/>
@@ -1072,7 +1075,10 @@ function VisitPicker({state,onPick,onClose}){
   const alive=state.students.filter(s=>!s.dropped);
   const mini=(label,value,max,color)=><div className="house-mini"><span>{label}</span><i style={{'--w':`${Math.round(value/max*100)}%`,'--c':color}}/><b>{Math.round(value)}</b></div>;
   return(<div className="modal-bg" onClick={onClose}><div className="modal visit-modal" onClick={e=>e.stopPropagation()}>
-    <h3>选择家访对象 <button className="btn small ghost" onClick={onClose}>✕</button></h3>
+    <div style={{textAlign:'left',marginBottom:8}}>
+      <button className="btn ghost" onClick={onClose}>← 返回主页面</button>
+    </div>
+    <h3>选择家访对象</h3>
     <div className="visit-note">每次家访消耗 1 点体力。先选择要拜访的家庭，再根据家庭矛盾和对话选择获得数值变化。</div>
     <div className="visit-map">
       {alive.map(s=>(
