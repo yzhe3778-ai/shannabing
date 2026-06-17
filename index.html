@@ -134,6 +134,17 @@ body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;b
 	.modal h3{font-size:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
 	.shop-modal{background:linear-gradient(rgba(255,253,246,.94),rgba(255,253,246,.9)),url("assets/scene/shop.png") center/cover no-repeat}
 	.log-modal{background:linear-gradient(rgba(255,253,246,.9),rgba(255,253,246,.94)),url("assets/ui/log_book.png") center top/cover no-repeat}
+.detail-modal{background:linear-gradient(rgba(255,253,246,.94),rgba(250,245,230,.94))}
+.detail-hero{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.detail-hero .qq-avatar{width:64px;height:64px;border-radius:16px}
+.detail-name{font-size:17px;font-weight:700}
+.detail-sub{font-size:12px;color:var(--soft)}
+.detail-section{margin-bottom:10px}
+.detail-section .label{font-size:11px;color:var(--soft);margin-bottom:3px;letter-spacing:1px}
+.detail-blurb{font-size:13px;line-height:1.65;background:var(--paper);border-radius:10px;padding:10px 12px}
+.detail-family{font-size:13px;line-height:1.55;margin-bottom:4px}
+.detail-status{font-size:12.5px;padding:8px 10px;border-radius:8px;background:rgba(194,91,78,.08);color:var(--red);line-height:1.5;margin-top:10px}
+
 	.shop-item{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:8px;border:1px solid rgba(122,106,85,.18);border-radius:12px;background:rgba(255,253,246,.78);box-shadow:0 2px 8px rgba(74,58,42,.08)}
 	.shop-icon{width:52px;height:46px;object-fit:contain;flex:0 0 auto}
 	.shop-item .info{flex:1}.shop-item .nm{font-size:14px;font-weight:600}.shop-item .ds{font-size:11.5px;color:var(--soft)}
@@ -167,6 +178,8 @@ body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;b
 	  .house-card{min-height:134px;padding:9px 7px}
 	}
 	.status-txt{font-size:12px;color:var(--red);line-height:1.4}
+.seat-info{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:1px solid #d8c9a6;background:var(--card);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;line-height:1;transition:transform .08s,background .15s}
+.seat-info:active{transform:scale(.9);background:var(--paper)}
 .attr-line{display:flex;align-items:center;gap:8px;font-size:12px;margin:5px 0}
 .attr-line span{width:56px;color:var(--soft)}
 .attr-line b{width:34px;text-align:right;font-size:12px}
@@ -884,6 +897,7 @@ function Hud({state,onShop,onLog}){
 function Classroom({state,dispatch,toast}){
   const seats=[...Array(9)].map((_,i)=> state.students.find(s=>s.seat===i));
   const [drag,setDrag]=useState(null), [over,setOver]=useState(null);
+  const [detail,setDetail]=useState(null);
 
   // 指针拖拽（手机/电脑通用）
   const onDown=(i)=>(e)=>{ if(!seats[i]||seats[i].dropped) return; setDrag(i); };
@@ -904,6 +918,7 @@ function Classroom({state,dispatch,toast}){
           <div key={i} data-i={i}
             className={'seat'+(drag===i?' dragging':'')+(over===i?' over':'')+(s.dropped?' gone':'')}
             onPointerDown={onDown(i)} onTouchStart={onDown(i)}>
+            {!s.dropped && <button className="seat-info" onClick={e=>{e.stopPropagation();setDetail(s);}} title="查看详情">📋</button>}
             <Avatar seed={s.id} size={40}/>
             <div className="nm">{s.name}{s.talentShown&&D.TALENTS[s.talent].ico?' '+D.TALENTS[s.talent].ico:''}</div>
             <div className="tg">{s.dropped?'已离开':(s.study>=D.WIN?'已走出大山':'兴趣'+s.interest+'/10')}</div>
@@ -912,6 +927,7 @@ function Classroom({state,dispatch,toast}){
       </div>
       <div className="podium">— 讲 台 —</div>
     </div>
+    {detail && <StudentDetail student={detail} onClose={()=>setDetail(null)}/>}
   </div>);
 }
 
@@ -1153,6 +1169,72 @@ function VisitPicker({state,onPick,onClose}){
       <div style={{fontSize:12.5,background:'var(--paper)',borderRadius:8,padding:'8px 10px',marginTop:8,lineHeight:1.6}}>{sel.per}</div>
       <button className="btn small ghost" style={{marginTop:10}} onClick={()=>setSel(null)}>返回</button>
     </div>}
+  </div></div>);
+}
+
+/* ---- 学生详情弹窗 ---- */
+function StudentDetail({student, onClose}){
+  const [persona,setPersona]=useState(null);
+  useEffect(()=>{
+    let cancel=false;
+    loadPersona(student.id).then(p=>{ if(!cancel) setPersona(p||personaFallback(student)); });
+    return ()=>{ cancel=true; };
+  },[student.id]);
+
+  const Bar=({label,v,max,color})=>(<div className="attr-line"><span>{label}</span>
+    <div className="bar"><i style={{width:(v/max*100)+'%',background:color}}/></div><b>{Math.round(v)}{max===10?'/10':''}</b></div>);
+
+  const core=persona?persona.core:student.per;
+  const talentName=D.TALENTS[student.talent].name;
+  const talentIco=D.TALENTS[student.talent].ico;
+
+  return(<div className="modal-bg" onClick={onClose}><div className="modal detail-modal" onClick={e=>e.stopPropagation()}>
+    <div style={{textAlign:'left',marginBottom:8}}>
+      <button className="btn ghost" onClick={onClose}>← 返回教室</button>
+    </div>
+
+    <div className="detail-hero">
+      <Avatar seed={student.id} size={64} style={{borderRadius:16}}/>
+      <div>
+        <div className="detail-name">{student.name}{student.talentShown&&talentIco?' '+talentIco:''}</div>
+        <div className="detail-sub">
+          {student.dropped?'已离开学校':(student.study>=D.WIN?'✅ 已走出大山':`第${student.seat+1}组 · 坐位${student.seat+1}`)}
+        </div>
+        <div className="detail-sub" style={{marginTop:2}}>
+          性格标签：{student.tag==='闹'?'活泼好动':student.tag==='静'?'安静内敛':student.tag==='敏感'?'心思细腻':student.tag==='暖'?'温暖阳光':'普通'}
+        </div>
+      </div>
+    </div>
+
+    <div className="detail-section">
+      <div className="label">性格特点</div>
+      <div className="detail-blurb">{core}</div>
+    </div>
+
+    <div className="detail-section">
+      <div className="label">家庭情况</div>
+      <div className="detail-family">{student.family}</div>
+      <Bar label="家庭压迫" v={student.fam} max={100} color="#8a5a44"/>
+    </div>
+
+    <div className="detail-section">
+      <div className="label">天赋 · 兴趣</div>
+      <div className="detail-blurb" style={{background:'transparent',padding:'0 0 4px 0'}}>
+        {student.talentShown
+          ? <span>✨ {talentIco} <b>{talentName}</b>天赋已显现</span>
+          : <span style={{color:'var(--soft)'}}>🔒 天赋尚未显现，多私聊/观察可解锁</span>}
+      </div>
+      <Bar label="学习值" v={student.study} max={100} color="#C25B4E"/>
+      <Bar label="兴趣值" v={student.interest} max={10} color="#7BA05B"/>
+    </div>
+
+    <div className="detail-section">
+      <div className="label">当前状态</div>
+      <Bar label="压力值" v={student.press} max={100} color="#5B7FA0"/>
+      <Bar label="信任" v={student.trust} max={100} color="#C99A2E"/>
+    </div>
+
+    {student.status && <div className="detail-status">💬 {student.status}</div>}
   </div></div>);
 }
 
