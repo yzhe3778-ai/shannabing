@@ -252,6 +252,8 @@ body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;b
 	.seat.atrisk{border-color:var(--red)!important;box-shadow:0 0 0 2px rgba(194,91,78,.5),0 4px 12px rgba(194,91,78,.3)}
 	.risk-badge{position:absolute;top:3px;left:3px;font-size:12px;z-index:2;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3));animation:risk-blink 1.1s infinite}
 	@keyframes risk-blink{50%{opacity:.35}}
+	.seat-chatted{position:absolute;top:2px;right:3px;font-size:12px;color:#7BA05B;z-index:2;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
+	.seat-visited{position:absolute;bottom:2px;right:3px;font-size:11px;z-index:2;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
 	.predict-bar{font-size:12.5px;color:var(--ink);background:var(--paper);border-radius:8px;padding:7px 10px;margin-bottom:10px;line-height:1.5}
 	.predict-bar b{color:var(--dusk)}
 	.togo{font-size:12px;color:var(--soft);margin-top:4px}
@@ -345,10 +347,10 @@ window.GAME_DATA = {
 
 	  /* 打工零工(每次随机出3个让玩家选1个)。收益统一收口到 0~200,不破坏经济平衡 */
 	  JOBS: [
-	    {id:'sell',    ico:'🥬', name:'集市卖菜', desc:'拖滑块凑出正确找零再确认（精准拖动+心算）'},
-	    {id:'water',   ico:'🪣', name:'挑水浇园', desc:'长按蓄力，水满到刻度松手（按住—松开蓄力）'},
-	    {id:'harvest', ico:'🌾', name:'农忙接稻', desc:'拖动竹筐接住落下的稻捆、躲开烂稻（拖动+躲避）'},
-	    {id:'couplet', ico:'🧧', name:'写春联',   desc:'滑块扫到"墨韵甜区"时下笔（看时机）'}
+	    {id:'sell',    ico:'🥬', name:'集市卖菜', desc:'拖滑块凑出正确找零再确认（精准拖动+心算）', floor:20},
+	    {id:'water',   ico:'🪣', name:'挑水浇园', desc:'长按蓄力，水满到刻度松手（按住—松开蓄力）', floor:30},
+	    {id:'harvest', ico:'🌾', name:'农忙接稻', desc:'拖动竹筐接住落下的稻捆、躲开烂稻（拖动+躲避）', floor:30},
+	    {id:'couplet', ico:'🧧', name:'写春联',   desc:'滑块扫到"墨韵甜区"时下笔（看时机）', floor:20}
 	  ],
 
 	  /* 学期结算时演出的本地事件库（AI失败兜底，也是日常）。{S}=随机在校学生 */
@@ -408,6 +410,88 @@ window.GAME_DATA = {
 	      {speaker:'老陈', text:'我老了，跑不动了。接下来，看你的。'},
 	      {speaker:'老陈', text:'把能送的，都送出去。一个，都别落下。'}
 	    ]}
+	  },
+
+	  /* 毕业学生信件模板：已毕业学生偶尔寄信回来 */
+	  GRAD_LETTERS: {
+	    damao: [
+	      {lead:'老陈递过一封信:"大毛寄来的。"', lines:[
+	        {speaker:'大毛', text:'老师，我在镇中学画了一幅画，贴在了走廊里。校长说不错。我还是不太信，但同学们说像。'},
+	        {speaker:'大毛', text:'画的是老学校的教室。您的杯子还在桌上。'},
+	        {speaker:'大毛', text:'我能当饭吃了吗？好像，快了。'}
+	      ]},
+	      {lead:'老陈晃了晃信封:"大毛的字还是歪，画倒是越来越好了。"', lines:[
+	        {speaker:'大毛', text:'给您寄了一张画。画的不是山，是山那边。有公路，有楼，还有一个小人在最底下——那就是我。'},
+	        {speaker:'大毛', text:'您说得对。画，不是没用。'}
+	      ]}
+	    ],
+	    xiaohua: [
+	      {lead:'老陈拆开一张叠得方方正正的信纸:"小花写的，字很轻。"', lines:[
+	        {speaker:'小花', text:'老师，我现在敢举手了。每次举手前还是会先看地面，但很快就抬起头来了。'},
+	        {speaker:'小花', text:'我画了一朵花，蓝色的。老师以前说蓝色很好，我就画了。'},
+	        {speaker:'小花', text:'我是不是……终于不幼稚了？'}
+	      ]}
+	    ],
+	    chouwa: [
+	      {lead:'老陈笑了:"丑娃这小子，居然也写信了。"', lines:[
+	        {speaker:'丑娃', text:'老师！我们班篮球赛我进了三个球！队长说我是MVP！虽然我不太懂MVP是啥。'},
+	        {speaker:'丑娃', text:'我好像也能做成点什么。不是说说的那种，是真的那种。'},
+	        {speaker:'丑娃', text:'老师你当年看我的时候，是不是就信我能的？'}
+	      ]}
+	    ],
+	    xingxing: [
+	      {lead:'老陈把信递过来:"星星的。她还是不爱出声，但信越来越长了。"', lines:[
+	        {speaker:'星星', text:'老师，学校有合唱团了。我还是只敢站在最后一排，但我在唱。'},
+	        {speaker:'星星', text:'有一天排练完，指挥老师单独叫住我，说我的音准很好。'},
+	        {speaker:'星星', text:'我没告诉我爹。但我告诉了您。因为您是我第一个敢唱给听的人。'}
+	      ]}
+	    ],
+	    mumu: [
+	      {lead:'老陈捏着皱巴巴的信纸:"木木这小子，信里还夹了一片叶子。"', lines:[
+	        {speaker:'木木', text:'老师，新学校旁边有一条河。河里有一种石头，花纹比我们老家的运气石还好看。'},
+	        {speaker:'木木', text:'弟弟也会写字了，他让我问你好。'},
+	        {speaker:'木木', text:'我不怕睡着了。因为早上的课，也很有意思。'}
+	      ]}
+	    ],
+	    danzai: [
+	      {lead:'老陈展开信:"蛋仔这字，比他本人还闹腾。"', lines:[
+	        {speaker:'蛋仔', text:'老师！你猜怎么着？我当了体育委员！以前都是我逗别人笑，现在还有点不习惯别人听我的。'},
+	        {speaker:'蛋仔', text:'班主任说我有组织能力。我想了想，大概就是带大家笑得更整齐一点。'},
+	        {speaker:'蛋仔', text:'老师你累不累？累的话，想想蛋仔在笑，就不累了。'}
+	      ]}
+	    ],
+	    goushen: [
+	      {lead:'老陈把信放桌上:"狗剩的。字最短，但每笔都沉。"', lines:[
+	        {speaker:'狗剩', text:'老师，新学校有田径队。教练说我耐力好。'}
+	      ]}
+	    ],
+	    ahua: [
+	      {lead:'老陈叹了口气:"阿花的信。她还是那么小心。"', lines:[
+	        {speaker:'阿花', text:'老师，我当上了副班长。选的时候我差点没举手——但我想起你以前说的，女孩子也可以。'},
+	        {speaker:'阿花', text:'我爹今年过年问我在学什么，我说了。他没说话，但也没说让我回去。'},
+	        {speaker:'阿花', text:'这就是进步吧？一步，我就当一步。'}
+	      ]}
+	    ],
+	    matui: [
+	      {lead:'老陈把信念出来:"马腿这小子，写信跟吵架似的。"', lines:[
+	        {speaker:'马腿', text:'老师！我跟你说！物理老师说我脑子快！我第一次被人说脑子快不是因为捣乱！'},
+	        {speaker:'马腿', text:'当年你说我聪明但没用到正地方——我现在用到了。'},
+	        {speaker:'马腿', text:'你是我遇过唯一一个敢管我又不烦我的老师。'}
+	      ]}
+	    ]
+	  },
+
+	  /* 信任突破对白：trust 首次越过阈值时，该学生触发专属对白 */
+	  TRUST_BREAKS: {
+	    damao: {50:{speaker:'大毛',text:'老师，你好像……是真的想看我的画。'},75:{speaker:'大毛',text:'老师，我爹的话我不太怕了。因为有你在后面。'}},
+	    xiaohua:{50:{speaker:'小花',text:'老师，你是蹲下来听我说话的。从来没有人这样。'},75:{speaker:'小花',text:'我不会再问自己"可以吗"了。因为你在。'}},
+	    chouwa:{50:{speaker:'丑娃',text:'老师你没嫌我闹。别人都嫌的。'},75:{speaker:'丑娃',text:'老师，我觉得我可能不是"白费"。你让我这么觉得的。'}},
+	    xingxing:{50:{speaker:'星星',text:'老师，上次我唱的那两句……你没笑我。'},75:{speaker:'星星',text:'我爹说没出息的时候，我脑子里想的是老师说的那句话。我就没怕了。'}},
+	    mumu:  {50:{speaker:'木木',text:'老师，这个运气石送给你。不是不要了，是想给你。'},75:{speaker:'木木',text:'我不怕自己是慢的了。因为我知道，有人在等。'}},
+	    danzai:{50:{speaker:'蛋仔',text:'老师，有时候我不想笑。但在你这儿，不笑也行。'},75:{speaker:'蛋仔',text:'老师你是我见过第一个——累的时候先问别人累不累的人。'}},
+	    goushen:{50:{speaker:'狗剩',text:'老师，你不问农忙的事。但是你帮我补了所有的课。'},75:{speaker:'狗剩',text:'我信你。比信我自己还多。'}},
+	    ahua:  {50:{speaker:'阿花',text:'老师，你是第一个告诉我女娃也可以的人。'},75:{speaker:'阿花',text:'老师，如果有一天我走出去了——我想变成像你一样的大人。'}},
+	    matui: {50:{speaker:'马腿',text:'老师你没跟我爹告状。你是第一个不告状的老师。'},75:{speaker:'马腿',text:'老师我跟你说实话——我以前觉得大人都是墙。你不是。你是门。'}}
 	  },
 
 	  INTRO_DIALOGUE: {
@@ -597,7 +681,7 @@ const D = window.GAME_DATA;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 	const rnd=a=>a[Math.floor(Math.random()*a.length)];
 	const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-	const interestMod=iv=>1+(clamp(iv,0,10)-5)*0.1;     // 学习增量修正
+	const interestMod=iv=>1+(clamp(iv,0,10)-5)*0.07;     // 学习增量修正
 	const STATUS={ACTIVE:'active',GRADUATED:'graduated',DROPPED:'dropped'};
 	const DISTRACTION_IDS=new Set(['matui','danzai','chouwa','goushen']);
 
@@ -763,6 +847,26 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 	    dialogue:graduationDialogue(stu), phase:'dialogue'};
 	}
 
+	/* 毕业学生寄信：已毕业学生偶尔寄信回校 */
+	function makeLetterDialogue(stu, tmpl){
+	  return {kind:'letter', scene:'classroom_topdown', who:stu.name, studentId:stu.id,
+	    portraitId:stu.id, mc:false, lead:tmpl.lead, lines:tmpl.lines, opts:null};
+	}
+	function rollGraduationLetter(state){
+	  // 已毕业(study>=70且active)但尚未寄过信的学生
+	  const graduated=state.students.filter(s=>isActiveStudent(s)&&Number(s.study||0)>=D.WIN);
+	  if(!graduated.length) return null;
+	  const sent=Array.isArray(state.graduatedLetters)?state.graduatedLetters:[];
+	  const pool=graduated.filter(s=>!sent.includes(s.id) && D.GRAD_LETTERS[s.id]);
+	  if(!pool.length) return null;
+	  // 每学期约30%概率收到一封信（随机选一个尚未寄信的已毕业学生）
+	  if(Math.random()>0.30) return null;
+	  const stu=pool[Math.floor(Math.random()*pool.length)];
+	  const tmpls=D.GRAD_LETTERS[stu.id];
+	  const tmpl=tmpls[Math.floor(Math.random()*tmpls.length)];
+	  return {studentId:stu.id, dialogue:makeLetterDialogue(stu,tmpl)};
+	}
+
 const store={
   get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}},
@@ -794,6 +898,8 @@ const store={
 	    shownMilestones:Array.isArray(state.shownMilestones)?state.shownMilestones:[],
 	    graduationQueue:Array.isArray(state.graduationQueue)?state.graduationQueue:[],
 	    postGraduationAction:state.postGraduationAction||null,
+	    graduatedLetters:Array.isArray(state.graduatedLetters)?state.graduatedLetters:[],
+	    trustBreaks:state.trustBreaks||{},
 	    qingyunUsed:state.qingyunUsed||0,
 	    qingyunThisTerm:!!state.qingyunThisTerm,
 	    tutorialDone:!!state.tutorialDone };
@@ -837,11 +943,14 @@ function newGame(){
 	    drawn:null, roundResult:null,
 	    recentCards:[],              // 最近5学期任务卡类别(连锁判定)
 	    termMods:{},                 // 本学期修正(突发事件设置,如 visitMult)
+	    termChatted:[], termVisited:[],  // 本学期已私聊/已家访的学生id集合
 	    termEvent:null,              // 当前待决策的突发事件实例
 	    pendingTermEvent:null,       // 里程碑剧情后待播的突发事件
 	    shownMilestones:[],          // 已播放的里程碑学期
 	    graduationQueue:[],          // 走出大山播报队列,按座位顺序播放
 	    postGraduationAction:null,   // 播报结束后恢复的动作
+	    graduatedLetters:[],         // 已寄出的毕业学生信件id列表(去重)
+	    trustBreaks:{},              // 各学生信任突破记录 {[sid]: [50,75]}
 	    qingyunUsed:0,               // 平步青云累计使用次数(价格递增)
 	    qingyunThisTerm:false,       // 本学期是否已用平步青云
 	    tutorialDone:false,          // 新手提示是否已出
@@ -985,6 +1094,12 @@ function continueAfterSettle(state){
     return {...ns, shownMilestones:[...ns.shownMilestones, nt], pendingTermEvent:te||null,
       dialogue:{...ms, who:'', studentId:null}, phase:'dialogue'};
   }
+  // 毕业学生寄信检查（里程碑之后、突发事件之前）
+  const letter=rollGraduationLetter(ns);
+  if(letter){
+    const sent=Array.isArray(ns.graduatedLetters)?ns.graduatedLetters:[];
+    return {...ns, graduatedLetters:[...sent, letter.studentId], termEvent:te||null, dialogue:letter.dialogue, phase:'dialogue'};
+  }
   return {...ns, termEvent:te||null, phase: te?'termevent':'classroom'};
 }
 
@@ -1054,7 +1169,24 @@ function reducer(state, a){
 			      if(state.dialogue && state.dialogue.kind==='visit' && state.termMods && state.termMods.visitMult && fx.fam){
 			        fx={...fx, fam: Math.round(fx.fam*state.termMods.visitMult)};   // 暴雨等修正:家访效果打折
 			      }
+			      // 信任突破检测：在应用 FX 前记录旧信任值
+			      const oldTrust=Number((stu&&stu.trust)||0);
 			      st=mapStu(st,a.studentId,s=>applyFxToStudent(s,fx));
+			      // 检查信任是否跨越阈值（50或75）
+			      if(typeof fx.trust==='number' && fx.trust!==0){
+			        const newStu=st.students.find(s=>s.id===a.studentId);
+			        const newTrust=Number((newStu&&newStu.trust)||0);
+			        const breaks=st.trustBreaks||{};
+			        const sidBreaks=breaks[a.studentId]||[];
+			        const thresholds=[50,75].filter(t=>oldTrust<t && newTrust>=t && !sidBreaks.includes(t));
+			        if(thresholds.length){
+			          st.trustBreaks={...breaks, [a.studentId]:[...sidBreaks,...thresholds]};
+			          // 取最高阈值触发专属对白
+			          const highT=Math.max(...thresholds);
+			          const tpl=D.TRUST_BREAKS[a.studentId]&&D.TRUST_BREAKS[a.studentId][highT];
+			          if(tpl) st.trustBreakToast={...tpl, studentId:a.studentId, threshold:highT};
+			        }
+			      }
 		      }
 		      if(isChatSettlement){
 		        let revealed=null;
@@ -1096,6 +1228,13 @@ function reducer(state, a){
 			        messages:a.messages || [...compactMessages(state.dialogue&&state.dialogue.lines),{speaker:'老师',text:String(a.choiceText||'结束对话').slice(0,120)}].slice(-12)
 			      });
 	      st.dialogue=null; st.phase='classroom';
+	      // 标记本学期已互动（兼容旧存档无此字段）
+	      st.termChatted=st.termChatted||[];
+	      st.termVisited=st.termVisited||[];
+	      if(a.studentId && canSettleStudent && state.dialogue){
+	        if(state.dialogue.kind==='chat' && !st.termChatted.includes(a.studentId)) st.termChatted=[...st.termChatted,a.studentId];
+	        if(state.dialogue.kind==='visit' && !st.termVisited.includes(a.studentId)) st.termVisited=[...st.termVisited,a.studentId];
+	      }
 	      return st;
 	    }
     case 'CLOSE_DIALOGUE':
@@ -1104,6 +1243,10 @@ function reducer(state, a){
         if(base.graduationQueue && base.graduationQueue.length) return openNextGraduationDialogue(base, base.postGraduationAction);
         if(base.postGraduationAction==='continue') return continueAfterSettle({...base, postGraduationAction:null});
         return {...base, phase:'classroom', postGraduationAction:null};
+      }
+      if(state.dialogue && state.dialogue.kind==='letter'){
+        // 信件关闭后回到新学期正常流程（突发事件或教室）
+        return {...state, dialogue:null, phase: state.termEvent?'termevent':'classroom'};
       }
       if(state.dialogue && state.dialogue.kind==='story' && state.pendingTermEvent)   // 里程碑剧情后接突发事件
         return {...state, dialogue:null, termEvent:state.pendingTermEvent, pendingTermEvent:null, phase:'termevent'};
@@ -1141,10 +1284,11 @@ function reducer(state, a){
       if(state.ap<=0) return state;
       return {...state, phase:'minigame', workEarned:0, workCharged:false};
     case 'CANCEL_MINIGAME': return {...state, phase:'classroom', workEarned:0, workCharged:false};
+    case 'CLEAR_TRUST_BREAK_TOAST': return {...state, trustBreakToast:null};
 
     case 'REST': {
       if(state.ap<=0) return state;
-      const students=state.students.map(s=> isActiveStudent(s)?applyFxToStudent(s,{press:-8}):normalizeStudent(s));
+      const students=state.students.map(s=> isActiveStudent(s)?applyFxToStudent(s,{press:-12}):normalizeStudent(s));
       return {...state, students, ap:state.ap-1};
     }
 
@@ -1163,7 +1307,7 @@ function reducer(state, a){
     }
 
     case 'NEXT_TERM':
-      return {...state, phase:'taskcard', drawn:drawCards()};
+      return {...state, phase:'taskcard', drawn:drawCards(), termChatted:[], termVisited:[]};
 
     case 'PICK_CARD': {                        // a.card
       const recentCards=[...(state.recentCards||[]), a.card.cat].slice(-5);
@@ -1550,7 +1694,7 @@ function personalityStateText(stu){
 			    profileUpdate,
 			    memoryNote:String(raw.memoryNote||ai&&ai.memoryNote||outcome.desc||'一次重要的谈话').slice(0,60),
 			    memorySummary:String(raw.memorySummary||ai&&ai.memorySummary||profileUpdate||outcome.desc||'关系有了新的变化').slice(0,80),
-			    unlock:false,
+			    unlock:!!outcome.unlock,
 			    turnCount
 			  };
 			}
@@ -1744,6 +1888,7 @@ function Hud({state,onShop,onLog,onSettings}){
     <span className="year">{yr}年 · 第{state.term}/{D.TERMS}学期</span>
     <span className="stat">💰¥{state.fund}</span>
     <span className="stat">⚡{[...Array(D.AP)].map((_,i)=><i key={i} className={'ap-dot'+(i<state.ap?'':' used')}/>)}</span>
+    <span className="stat" style={{fontSize:'0.68rem',color:'var(--soft)',gap:2}}>已聊 {(state.termChatted||[]).length}/9 · 已访 {(state.termVisited||[]).length}/9</span>
     <button className="btn small" onClick={onShop}>🛒商店</button>
     <button className="btn small ghost" onClick={onLog}>📔日志</button>
     <button className="mute" onClick={toggleMute} title={muted?'取消静音':'静音'} aria-label="静音开关">{muted?'🔇':'🔊'}</button>
@@ -1802,6 +1947,8 @@ function Classroom({state,dispatch,toast,onSwap}){
             onPointerDown={onDown(i)} onTouchStart={onDown(i)}>
             {!isDropped(s) && <button className="seat-info" onClick={e=>{e.stopPropagation();setDetail(s);}} title="查看详情">📋</button>}
             {atRisk(s) && <span className="risk-badge" title="快撑不住了">⚠</span>}
+            {(state.termChatted||[]).includes(s.id) && <span className="seat-chatted" title="本学期已私聊">✓</span>}
+            {(state.termVisited||[]).includes(s.id) && <span className="seat-visited" title="本学期已家访">🏠</span>}
             <Avatar seed={s.id} size={40}/>
             <div className="nm">{s.name}{s.talentShown&&D.TALENTS[s.talent].ico?' '+D.TALENTS[s.talent].ico:''}</div>
             <div className="tg" title={seatStatusTitle(s)}>{seatStatusLabel(s)}</div>
@@ -1823,7 +1970,13 @@ function ActionBar({state,dispatch,onChat,onVisit,onNext,toast}){
 	    <button className="actbtn" disabled={noAp} onClick={act(onVisit,true)}><span className="ic"><img src={uiPath(ACTION_ICON.visit)} alt="家访"/></span><span className="lb">家访</span></button>
 	    <button className="actbtn" disabled={noAp} onClick={act(()=>dispatch({type:'SWAP_MODE',on:true})||toast('拖动两个同学换位'),true)}><span className="ic"><img src={uiPath(ACTION_ICON.swap)} alt="换位"/></span><span className="lb">换位</span></button>
 	    <button className="actbtn" disabled={noAp} onClick={act(()=>dispatch({type:'GO_MINIGAME'}),true)}><span className="ic"><img src={uiPath(ACTION_ICON.work)} alt="打工"/></span><span className="lb">打工</span></button>
-	    <button className="actbtn" disabled={noAp} onClick={act(()=>{dispatch({type:'REST'});toast('全班松了口气,压力-8');},true)}><span className="ic"><img src={uiPath(ACTION_ICON.rest)} alt="休息"/></span><span className="lb">休息</span></button>
+	    <button className="actbtn" disabled={noAp} onClick={act(()=>{dispatch({type:'REST'});
+        const alive=state.students.filter(s=>isActive(s)&&s.press>30);
+        const pick=alive.length?alive[Math.floor(Math.random()*alive.length)]:null;
+        const msgs=['老师，你歇会儿吧，我们自己会学。','今天老师没催作业，怪不习惯的。','其实有时候就想有人陪着坐一会儿。','老师，你坐着就行，我们自己来。','老师别太累了，我们都看在眼里。','嗯……老师你喘口气，这题我自己再琢磨琢磨。'];
+        const msg=pick?pick.name+'：'+msgs[Math.floor(Math.random()*msgs.length)]:'全班松了口气,压力-12';
+        toast(msg);
+      },true)}><span className="ic"><img src={uiPath(ACTION_ICON.rest)} alt="休息"/></span><span className="lb">休息</span></button>
     <button className="actbtn go" onClick={()=>{ if(state.ap>0 && !confirm('体力还没用完,确定进入下一学期?')) return; onNext(); }}><span className="ic">▶</span><span className="lb">下一学期</span></button>
   </div>);
 }
@@ -2157,7 +2310,8 @@ function WorkHub({onDone,onCancel,onProgress}){
     <div className="cards">
       {choices.map(j=>(<div key={j.id} className="tcard" onClick={()=>{window.AUDIO&&AUDIO.sfx('card');setJob(j);}}>
         <div style={{fontSize:32,textAlign:'center',marginBottom:2}}>{j.ico}</div>
-        <h4 style={{textAlign:'center'}}>{j.name}</h4><p>{j.desc}</p></div>))}
+        <h4 style={{textAlign:'center'}}>{j.name}</h4><p>{j.desc}</p>
+        <div className="fx" style={{fontSize:'0.62rem',color:'var(--soft)'}}>保底 ¥{j.floor} · 最高 ¥200</div></div>))}
     </div>
     <div style={{textAlign:'center',marginTop:12}}><button className="btn small ghost" onClick={onCancel}>不打工了</button></div>
   </div>);
@@ -2439,6 +2593,14 @@ function App(){
 	        chatSceneId:tpl.sceneId,chatSceneTitle:tpl.sceneTitle,phase:'running',turnCount:0,maxMessages:D.MAX_CHAT_MESSAGES,
 	        lines:[teacherOpen,{speaker:stu.name,text:tpl.lead,portraitId:stu.id,mc:false}],opts:tpl.opts,baseOpts:tpl.opts,memoryCount:(characterMemory(state,stu.id).interactions||[]).length};
 	    }
+	    // 兴趣≥7 解锁特殊对话选项D（本地固定文案，不依赖AI）
+	    if(stu.interest>=7){
+	      const dTexts={art:'看你最近画得不错，给我看看？',sports:'最近打球打得怎么样？',music:'听说你最近在哼歌，唱一段？',academic:'最近在读什么书？给我讲讲？'};
+	      const dKey=stu.talent&&dTexts[stu.talent]?stu.talent:'none';
+	      const dText=dTexts[dKey]||'你最近好像特别有劲儿，遇到啥好事了？';
+	      const talentName=(stu.talent&&D.TALENTS[stu.talent]&&D.TALENTS[stu.talent].name)||'学习';
+	      dlg.opts=[...(dlg.opts||[]),{t:dText,type:'interest_special',fx:{trust:3,interest:1},memoryNote:stu.name+'的兴趣被老师注意到了',memorySummary:'老师发现了'+stu.name+'对'+talentName+'的兴趣，这让'+stu.name+'感到被看见'}];
+	    }
     setBusy(false);
     dispatch({type:'OPEN_DIALOGUE',dialogue:dlg,cost:true});
   };
@@ -2615,6 +2777,17 @@ function App(){
       }
     }
   },[screen,state&&state.phase,state&&state.term]);
+
+  // 信任突破对白：trust 首次越过 50/75 时弹出学生专属对白
+  useEffect(()=>{
+    if(state && state.trustBreakToast){
+      const t=state.trustBreakToast;
+      toast(`${t.speaker}：${t.text}`);
+      window.AUDIO&&window.AUDIO.sfx('up');
+      // 清除标记防止重复触发
+      dispatch({type:'CLEAR_TRUST_BREAK_TOAST'});
+    }
+  },[state&&state.trustBreakToast]);
 
   if(screen==='title' || !state){
     const has=E.isValidSave(E.store.get(SAVE_KEY));

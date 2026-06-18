@@ -12,6 +12,7 @@ const API_TIMEOUT_MS = Number(process.env.YUNWU_TIMEOUT_MS || 12000);
 const VOICE = `你在为一款乡村支教题材的叙事游戏《山那边》生成对白。
 风格要求:生活化、有温度、靠潜台词和留白传情,绝不说教,绝不煽情。
 主角是返乡支教的青年教师(玩家),当年是老校长老陈的学生。
+【极其重要】每个学生的 persona.voice.forbidden 里列出了"这个角色绝不会说的话/不会做的事",你必须严格遵守,一旦违反会导致角色崩坏。
 只输出 JSON,不要任何解释或代码块标记。`;
 
 const OUTCOME_TAGS = {
@@ -50,7 +51,12 @@ function personaBlock(p){
     memories: persona.memories,
     dialogueRules: persona.dialogueRules
   };
-  return JSON.stringify(compact).slice(0, 3600);
+  // 如果 voice 中有 forbidden 字段，在输出中前置强调
+  const forbidden = (persona.voice && persona.voice.forbidden) || [];
+  if(forbidden.length){
+    compact._FORBIDDEN = forbidden;
+  }
+  return JSON.stringify(compact).slice(0, 3800);
 }
 
 function memoryBlock(p){
