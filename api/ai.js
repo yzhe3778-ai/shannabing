@@ -158,11 +158,14 @@ function buildPrompt(type, p){
 					- speaker 必须是"${p.name}"。
 			- text 控制在 20~90 个汉字,可以包含 1~3 个短句,像真实聊天气泡。
 			- 可使用知识库里的细节,也可补少量不冲突的生活细节;不要改写家庭设定和天赋设定。
-			- 这个开场要给老师留下继续追问或安抚的空间,再给老师 3 个快捷回应选项(各16字内)。
+			- 这个开场要给老师留下继续追问或安抚的空间,再给老师 3 个快捷回应选项(各16字内),顺序必须固定:
+			  1. A 安慰:顺着学生的话共情、安抚压力;
+			  2. B 施压:直接推动学生学习、带一点要求感;
+			  3. C 干扰:话题跳脱、轻松意外,可以引到兴趣爱好。
 			- 可选:给一句更新后的学生简介 newPer(20字内)。
 				- 输出 memoryNote: 这段互动应该写入该角色长期记忆的一句话(30字内)。
 				- 输出 memorySummary: 更新后的角色对老师关系摘要(40字内)。
-				输出 JSON: {"teacherOpen":"老师开场","lines":[{"speaker":"${p.name}","text":"一条学生回应"}],"opts":[{"t":"选项1"},{"t":"选项2"},{"t":"选项3"}],"newPer":"可选","memoryNote":"记忆点","memorySummary":"关系摘要"}`;
+				输出 JSON: {"teacherOpen":"老师开场","lines":[{"speaker":"${p.name}","text":"一条学生回应"}],"opts":[{"t":"A 安慰:..."},{"t":"B 施压:..."},{"t":"C 干扰:..."}],"newPer":"可选","memoryNote":"记忆点","memorySummary":"关系摘要"}`;
 	  }
 	  if(type === 'visit'){
 	    return `家访学生:${p.name}。家庭矛盾:${p.family}。当前家庭压迫${p.fam}/100。
@@ -188,6 +191,9 @@ function buildPrompt(type, p){
 		    const speakerRule = p.kind === 'visit'
 		      ? `speaker 只能使用"家长"或"${p.name}",根据玩家刚才问的是家长问题还是孩子问题选择一个最相关的人回应`
 		      : `speaker 必须是"${p.name}"`;
+		    const optExample = p.kind === 'visit'
+		      ? `[{"t":"具体沟通行动1"},{"t":"具体沟通行动2"},{"t":"具体沟通行动3"}]`
+		      : `[{"t":"A 安慰:..."},{"t":"B 施压:..."},{"t":"C 干扰:..."}]`;
 	    return `你正在继续一段${p.kind==='visit'?'家访':'私聊'}互动。
 角色:${p.name}。当前学期:${p.term||1}。当前数值:${JSON.stringify(p.stats||{})}。
 该角色独立人格知识库:${personaBlock(p)}
@@ -204,13 +210,13 @@ ${dialogueBlock(p)}
 	- 必须回应玩家刚刚输入的话,不能无视。
 	- 如果历史记忆里有相关承诺、旧事、矛盾,要自然提到或体现。
 	- text 控制在 20~140 个汉字,可以包含 1~4 个短句,但必须在同一个气泡里。
-	- 结尾给 3 个可点击回应选项,各16字内;选项应该是老师下一步能做的真实行动。
+	- 结尾给 3 个可点击回应选项,各16字内;私聊时顺序必须固定为 A 安慰、B 施压、C 干扰;家访时给 3 个具体沟通行动。
 	- settlement.ready 只有在话题已经自然收束、学生/家长态度有明确变化、或已经聊了几轮时才为 true。
 	- settlement.outcomeTag 必须从这些标签里选择: ${(p.outcomeTags&&p.outcomeTags.length?p.outcomeTags:OUTCOME_TAGS[p.kind==='visit'?'visit':'chat']).join(', ')}。
 	- 不要输出具体数值变化,数值由本地系统决定。
 	- 输出 memoryNote: 这次自由输入互动应写入长期记忆的一句话(30字内)。
 	- 输出 memorySummary: 更新后的关系摘要(40字内)。
-	输出 JSON: {"lines":[{"speaker":"${p.kind==='visit'?'家长':p.name}","text":"一条对方回应"}],"opts":[{"t":"选项1"},{"t":"选项2"},{"t":"选项3"}],"settlement":{"ready":false,"outcomeTag":"trust_built","title":"结算标题","teacherSummary":"老师总结话术","studentReaction":"学生或家长反应","profileUpdate":"档案更新","memoryNote":"记忆点","memorySummary":"关系摘要"},"memoryNote":"记忆点","memorySummary":"关系摘要","newPer":"可选"}`;
+	输出 JSON: {"lines":[{"speaker":"${p.kind==='visit'?'家长':p.name}","text":"一条对方回应"}],"opts":${optExample},"settlement":{"ready":false,"outcomeTag":"trust_built","title":"结算标题","teacherSummary":"老师总结话术","studentReaction":"学生或家长反应","profileUpdate":"档案更新","memoryNote":"记忆点","memorySummary":"关系摘要"},"memoryNote":"记忆点","memorySummary":"关系摘要","newPer":"可选"}`;
 	  }
 	  if(type === 'swap'){
 	    const a = p.a || {};
