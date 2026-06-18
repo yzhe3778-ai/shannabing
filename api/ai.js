@@ -1,4 +1,4 @@
-// 云雾 API (OpenAI 兼容) serverless 函数 · 私聊/家访/状态文案生成
+// 云雾 API (OpenAI 兼容) serverless 函数 · 私聊/家访/换位/状态文案生成
 // Key 必须放环境变量 YUNWU_API_KEY，绝不写进前端。
 // 前端任何失败/超时都会自动降级到本地模板，所以这里只管"尽力而为"。
 
@@ -92,9 +92,33 @@ function oneNpcBubble(type, result, p){
   return result;
 }
 
+function sanitizeSwap(result, p){
+  const a = (p && p.a) || {};
+  const b = (p && p.b) || {};
+  const names = [a.name, b.name].filter(Boolean).map(String);
+  const raw = Array.isArray(result.lines) ? result.lines : [];
+  result.lead = String(result.lead || `${a.name || '学生甲'} 和 ${b.name || '学生乙'} 换了座。`).replace(/\s+/g, ' ').trim().slice(0, 160);
+  result.lines = raw.map((x, i) => {
+    const fallbackSpeaker = names[i % Math.max(1, names.length)] || '学生';
+    let speaker = String((x && x.speaker) || fallbackSpeaker).slice(0, 12);
+    if(names.length && !names.includes(speaker)) speaker = fallbackSpeaker;
+    return { speaker, text: lineText(x).slice(0, 100) };
+  }).filter(x => x.text).slice(0, 4);
+  if(result.lines.length < 2 && names.length === 2){
+    result.lines = [
+      { speaker: names[0], text: '以后咱俩一桌,有不会的就互相问。' },
+      { speaker: names[1], text: '行。那这学期我们都别掉队。' }
+    ];
+  }
+  delete result.opts;
+  delete result.settlement;
+  return result;
+}
+
 function sanitizeResult(type, result, p){
   if(!result || typeof result !== 'object') return result;
   if(result.teacherOpen) result.teacherOpen = String(result.teacherOpen).replace(/\s+/g, ' ').trim().slice(0, 140);
+  if(type === 'swap') return sanitizeSwap(result, p || {});
   if(type === 'chat' || type === 'visit' || type === 'reply') result = oneNpcBubble(type, result, p || {});
   const lineLimit = type === 'chat' ? 1 : (type === 'visit' ? 1 : (type === 'reply' ? 1 : 0));
   if(lineLimit && Array.isArray(result.lines)) result.lines = result.lines.slice(0, lineLimit);
@@ -188,6 +212,28 @@ ${dialogueBlock(p)}
 	- 输出 memorySummary: 更新后的关系摘要(40字内)。
 	输出 JSON: {"lines":[{"speaker":"${p.kind==='visit'?'家长':p.name}","text":"一条对方回应"}],"opts":[{"t":"选项1"},{"t":"选项2"},{"t":"选项3"}],"settlement":{"ready":false,"outcomeTag":"trust_built","title":"结算标题","teacherSummary":"老师总结话术","studentReaction":"学生或家长反应","profileUpdate":"档案更新","memoryNote":"记忆点","memorySummary":"关系摘要"},"memoryNote":"记忆点","memorySummary":"关系摘要","newPer":"可选"}`;
 	  }
+	  if(type === 'swap'){
+	    const a = p.a || {};
+	    const b = p.b || {};
+	    return `你正在为乡村支教叙事游戏生成"换位后新同桌短对白"。
+当前学期:${p.term||1}。
+学生A:${a.name}。性格:${a.per}。标签:${a.tag}。家庭:${a.family}。当前数值:兴趣${a.interest}/10,学习${a.study}/100,压力${a.press}/100,信任${a.trust}/100。
+学生A人格知识库:${personaBlock({id:a.id, persona:a.persona})}
+学生A历史记忆:${memoryBlock({memory:a.memory})}
+学生B:${b.name}。性格:${b.per}。标签:${b.tag}。家庭:${b.family}。当前数值:兴趣${b.interest}/10,学习${b.study}/100,压力${b.press}/100,信任${b.trust}/100。
+学生B人格知识库:${personaBlock({id:b.id, persona:b.persona})}
+学生B历史记忆:${memoryBlock({memory:b.memory})}
+本地换位判断:${p.line||'新同桌慢慢熟了'}。
+最近班级日志:${(p.recentLog||[]).join('；')||'暂无'}。
+
+要求:
+- 只写${a.name}和${b.name}之间的短对白,不要出现老师、旁白、数值、系统说明。
+- 必须贴合两人的性格、家庭处境和当前关系,像刚换座后压低声音说的真话。
+- 2 到 4 行,每行 12 到 45 个汉字;可以有停顿和口语,不要说教。
+- 对白要自然带出"互相学习/重新有点兴趣"的感觉,但不要直说属性增加。
+- speaker 只能是"${a.name}"或"${b.name}"。
+输出 JSON: {"lead":"${a.name}和${b.name}换了座。","lines":[{"speaker":"${a.name}","text":"一句话"},{"speaker":"${b.name}","text":"一句话"}]}`;
+	  }
 	  if(type === 'status'){
     const list = (p.students||[]).map(s=>`${s.id}:${s.name}(性格:${s.per};家庭压迫${s.fam};压力${s.press};兴趣${s.interest};学习${s.study})`).join('；');
     return `为下列学生各写一句20字内的"当前状态"白描(贴合其数值与性格,含蓄、有画面感,不直接报数值):${list}。
@@ -217,7 +263,7 @@ module.exports = async (req, res) => {
           model: MODEL,
           messages: [ { role:'system', content: VOICE }, { role:'user', content: userPrompt } ],
           temperature: 0.85,
-          max_tokens: type === 'status' ? 500 : (type === 'reply' ? 1000 : 1200),
+          max_tokens: type === 'status' ? 500 : (type === 'swap' ? 700 : (type === 'reply' ? 1000 : 1200)),
           response_format: { type: 'json_object' }
         })
       });
