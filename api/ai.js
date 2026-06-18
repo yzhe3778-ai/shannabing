@@ -58,8 +58,20 @@ function memoryBlock(p){
   return JSON.stringify({
     summary: m.summary || '',
     notes: Array.isArray(m.notes) ? m.notes.slice(-8) : [],
-    interactions: Array.isArray(m.interactions) ? m.interactions.slice(-6) : []
+    interactions: Array.isArray(m.interactions) ? m.interactions.slice(-6) : [],
+    mutations: Array.isArray(m.mutations) ? m.mutations.slice(-6) : []
   }).slice(0, 2600);
+}
+
+function personalityStateBlock(p){
+  const ps = p.personalityState || {};
+  return JSON.stringify({
+    stage: ps.stage || 0,
+    trustStyle: ps.trustStyle || 'guarded',
+    motivation: ps.motivation || 'low',
+    pressureStyle: ps.pressureStyle || 'avoid',
+    lastMutation: ps.lastMutation || ''
+  });
 }
 
 function dialogueBlock(p){
@@ -153,6 +165,7 @@ function buildPrompt(type, p){
 最近班级日志:${(p.recentLog||[]).join('；')||'暂无'}。
 该角色独立人格知识库:${personaBlock(p)}
 该角色历史记忆:${memoryBlock(p)}
+该角色当前人格成长状态:${personalityStateBlock(p)}
 ${sceneBlock}
 					请生成"老师私聊该学生"的文游式开场,后续会由玩家用选项或输入继续推进。
 					要求:
@@ -180,6 +193,7 @@ ${sceneBlock}
 最近班级日志:${(p.recentLog||[]).join('；')||'暂无'}。
 该角色独立人格知识库:${personaBlock(p)}
 该角色历史记忆:${memoryBlock(p)}
+该角色当前人格成长状态:${personalityStateBlock(p)}
 				请生成"老师上门家访、与家长就孩子前途交谈"的文游式开场,后续会由玩家用选项或输入继续推进。
 				要求:
 				- 必须优先遵守该角色人格知识库,尤其是家庭矛盾、孩子恐惧、家访说服路径。
@@ -205,6 +219,7 @@ ${sceneBlock}
 角色:${p.name}。当前学期:${p.term||1}。当前数值:${JSON.stringify(p.stats||{})}。
 该角色独立人格知识库:${personaBlock(p)}
 该角色历史记忆:${memoryBlock(p)}
+该角色当前人格成长状态:${personalityStateBlock(p)}
 当前对话上下文:
 ${dialogueBlock(p)}
 

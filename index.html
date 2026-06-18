@@ -610,6 +610,97 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 	function isDroppedStudent(s){ return studentStatus(s)===STATUS.DROPPED; }
 	function isGraduatedStudent(s){ return studentStatus(s)===STATUS.GRADUATED; }
 	function isActiveStudent(s){ return studentStatus(s)===STATUS.ACTIVE; }
+	function defaultPersonalityState(s){
+	  return {
+	    stage:0,
+	    trustStyle:Number(s&&s.trust||0)>=30?'warming':'guarded',
+	    motivation:Number(s&&s.interest||0)>=5?'growing':'low',
+	    pressureStyle:Number(s&&s.press||0)>=55?'endure':'avoid',
+	    lastMutation:''
+	  };
+	}
+	function normalizePersonalityState(ps, s){
+	  const base=defaultPersonalityState(s);
+	  const trustOk=new Set(['guarded','warming','open']);
+	  const motivationOk=new Set(['low','unstable','growing','strong']);
+	  const pressureOk=new Set(['avoid','endure','express','plan']);
+	  const stage=Number.isFinite(Number(ps&&ps.stage))?clamp(Math.floor(Number(ps.stage)),0,3):base.stage;
+	  return {
+	    stage,
+	    trustStyle:trustOk.has(ps&&ps.trustStyle)?ps.trustStyle:base.trustStyle,
+	    motivation:motivationOk.has(ps&&ps.motivation)?ps.motivation:base.motivation,
+	    pressureStyle:pressureOk.has(ps&&ps.pressureStyle)?ps.pressureStyle:base.pressureStyle,
+	    lastMutation:String((ps&&ps.lastMutation)||base.lastMutation||'').slice(0,60)
+	  };
+	}
+	function nextValue(cur, order){
+	  const i=order.indexOf(cur);
+	  if(i<0) return order[0];
+	  return order[Math.min(order.length-1,i+1)];
+	}
+	function personalityStageFrom(ps){
+	  let score=0;
+	  if(ps.trustStyle==='warming') score+=1;
+	  if(ps.trustStyle==='open') score+=2;
+	  if(ps.motivation==='growing') score+=1;
+	  if(ps.motivation==='strong') score+=2;
+	  if(ps.pressureStyle==='express') score+=1;
+	  if(ps.pressureStyle==='plan') score+=2;
+	  return clamp(Math.floor(score/2),0,3);
+	}
+	function inferChoiceType(choiceText){
+	  const t=String(choiceText||'');
+	  if(t.includes('安慰') || /^A\b/.test(t)) return 'comfort';
+	  if(t.includes('施压') || t.includes('压力') || /^B\b/.test(t)) return 'pressure';
+	  if(t.includes('干扰') || /^C\b/.test(t)) return 'distraction';
+	  return '';
+	}
+	function evolvePersonalityState(stu, ctx){
+	  const before=normalizePersonalityState(stu.personalityState, stu);
+	  let next={...before};
+	  const kind=ctx.kind||'chat';
+	  const type=ctx.choiceType||inferChoiceType(ctx.choiceText);
+	  const notes=[];
+	  if(kind==='visit'){
+	    next.trustStyle=nextValue(next.trustStyle,['guarded','warming','open']);
+	    next.pressureStyle=nextValue(next.pressureStyle,['avoid','endure','express','plan']);
+	    notes.push('家访让现实压力有了出口');
+	  }
+	  if(type==='comfort'){
+	    next.trustStyle=nextValue(next.trustStyle,['guarded','warming','open']);
+	    next.pressureStyle=nextValue(next.pressureStyle,['avoid','endure','express','plan']);
+	    notes.push('被安慰后更愿意开口');
+	  }else if(type==='pressure'){
+	    next.motivation=nextValue(next.motivation,['low','unstable','growing','strong']);
+	    if((stu.press||0)>=70) next.pressureStyle='endure';
+	    else next.pressureStyle=nextValue(next.pressureStyle,['avoid','endure','plan']);
+	    notes.push('被推动后行动感增强');
+	  }else if(type==='distraction'){
+	    next.trustStyle=nextValue(next.trustStyle,['guarded','warming','open']);
+	    next.pressureStyle=nextValue(next.pressureStyle,['avoid','express','plan']);
+	    if(stu.likesDistraction) next.motivation=nextValue(next.motivation,['low','unstable','growing','strong']);
+	    notes.push(stu.likesDistraction?'跳脱话题点燃了劲头':'轻松话题让防备松了一点');
+	  }
+	  if((ctx.outcomeTag||'').includes('interest')) next.motivation=nextValue(next.motivation,['low','unstable','growing','strong']);
+	  if((ctx.outcomeTag||'').includes('pressure')) next.pressureStyle=nextValue(next.pressureStyle,['avoid','endure','express','plan']);
+	  const dimensionChanged=before.trustStyle!==next.trustStyle||before.motivation!==next.motivation||before.pressureStyle!==next.pressureStyle;
+	  next.stage=Math.max(before.stage, personalityStageFrom(next), dimensionChanged?1:0);
+	  if((stu.trust||0)>=60 || (stu.study||0)>=55) next.stage=Math.max(next.stage,3);
+	  const note=notes[0]||'这次互动让状态有了细微变化';
+	  next.lastMutation=note;
+	  const changed=before.stage!==next.stage||dimensionChanged;
+	  return {
+	    student:{...stu,personalityState:next},
+	    mutation:changed?{
+	      term:ctx.term||0,
+	      kind,
+	      trigger:ctx.choiceText||ctx.settlementTitle||'互动结算',
+	      before,
+	      after:next,
+	      note
+	    }:null
+	  };
+	}
 	function normalizeStudent(s){
 	  const dropped=!!(s.dropped || s.statusType===STATUS.DROPPED);
 	  const inferredGraduated=!dropped && (s.statusType===STATUS.GRADUATED || (!s.statusType && Number(s.study||0)>=D.WIN));
@@ -620,6 +711,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 	    chatCount:Number.isFinite(Number(s.chatCount))?Math.max(0,Math.floor(Number(s.chatCount))):0,
 	    successAnnounced:statusType===STATUS.GRADUATED ? true : !!s.successAnnounced,
 	    likesDistraction:typeof s.likesDistraction==='boolean' ? s.likesDistraction : DISTRACTION_IDS.has(s.id),
+	    personalityState:normalizePersonalityState(s.personalityState, s),
 	    flags:Array.isArray(s.flags)?s.flags:[]
 	  };
 	}
@@ -679,18 +771,19 @@ const store={
 
 	function blankMemories(students){
 	  const out={};
-	  students.forEach(s=>{ out[s.id]={summary:'', notes:[], interactions:[]}; });
+	  students.forEach(s=>{ out[s.id]={summary:'', notes:[], interactions:[], mutations:[]}; });
 	  return out;
 	}
 	function ensureMemories(state){
 	  const memories={...(state.memories||{})};
 	  const students=(state.students||[]).map(normalizeStudent);
 	  students.forEach(s=>{
-	    if(!memories[s.id]) memories[s.id]={summary:'',notes:[],interactions:[]};
+	    if(!memories[s.id]) memories[s.id]={summary:'',notes:[],interactions:[],mutations:[]};
 	    else memories[s.id]={
 	      summary:memories[s.id].summary||'',
 	      notes:Array.isArray(memories[s.id].notes)?memories[s.id].notes.slice(-12):[],
-	      interactions:Array.isArray(memories[s.id].interactions)?memories[s.id].interactions.slice(-12):[]
+	      interactions:Array.isArray(memories[s.id].interactions)?memories[s.id].interactions.slice(-12):[],
+	      mutations:Array.isArray(memories[s.id].mutations)?memories[s.id].mutations.slice(-12):[]
 	    };
 	  });
 	  return {...state, memories, students,
@@ -708,12 +801,13 @@ const store={
 		function appendCharacterMemory(state, id, entry){
 		  if(!id) return state;
 		  const base=ensureMemories(state);
-		  const cur=base.memories[id]||{summary:'',notes:[],interactions:[]};
+		  const cur=base.memories[id]||{summary:'',notes:[],interactions:[],mutations:[]};
 		  const note=entry.note||entry.choice||entry.text||'';
 	  const notes=note ? [...(cur.notes||[]), note].slice(-12) : (cur.notes||[]).slice(-12);
 	  const interactions=[...(cur.interactions||[]), entry].slice(-12);
+	  const mutations=entry.mutation ? [...(cur.mutations||[]), entry.mutation].slice(-12) : (cur.mutations||[]).slice(-12);
 		  const summary=entry.summary || cur.summary || notes.slice(-3).join('；');
-		  return {...base, memories:{...base.memories,[id]:{summary,notes,interactions}}};
+		  return {...base, memories:{...base.memories,[id]:{summary,notes,interactions,mutations}}};
 		}
 		function compactMessages(lines){
 		  return (Array.isArray(lines)?lines:[])
@@ -731,7 +825,8 @@ function newGame(){
     id:s.id,name:s.name,talent:s.talent,talentShown:s.shown,
     study:0, interest:0, press:10, fam:s.fam, trust:s.trust,
     per:s.per, family:s.family, tag:s.tag, seat:i, dropped:false, status:'', flags:[],
-    statusType:STATUS.ACTIVE, successAnnounced:false, chatCount:0, likesDistraction:DISTRACTION_IDS.has(s.id)
+    statusType:STATUS.ACTIVE, successAnnounced:false, chatCount:0, likesDistraction:DISTRACTION_IDS.has(s.id),
+    personalityState:defaultPersonalityState({...s,study:0,interest:0,press:10})
   }));
 	  return {
 		    v:4, term:1, ap:D.AP, fund:D.START_FUND,
@@ -950,6 +1045,7 @@ function reducer(state, a){
 
 	    case 'RESOLVE_DIALOGUE': {                 // a.fx,a.studentId,a.unlock
 	      let st={...state};
+	      let personalityMutation=null;
 	      const stu=a.studentId && state.students.find(s=>s.id===a.studentId);
 	      const canSettleStudent=!!(a.studentId && isActiveStudent(stu) && stu.study<D.WIN);
 	      const isChatSettlement=!!(state.dialogue && state.dialogue.kind==='chat' && canSettleStudent);
@@ -974,6 +1070,20 @@ function reducer(state, a){
 		      }
 		      if(a.studentId && a.newPer && canSettleStudent) st=mapStu(st,a.studentId,s=>({...s,per:a.newPer}));
 		      if(a.studentId && a.statusUpdate && canSettleStudent) st=mapStu(st,a.studentId,s=>({...s,status:a.statusUpdate}));
+		      if(a.studentId && canSettleStudent && state.dialogue && (state.dialogue.kind==='chat'||state.dialogue.kind==='visit')){
+		        st=mapStu(st,a.studentId,s=>{
+		          const evolved=evolvePersonalityState(s,{
+		            term:state.term,
+		            kind:state.dialogue.kind,
+		            choiceType:a.choiceType || state.dialogue.lastChoiceType,
+		            choiceText:a.choiceText,
+		            outcomeTag:a.outcomeTag,
+		            settlementTitle:a.settlementTitle
+		          });
+		          personalityMutation=evolved.mutation;
+		          return evolved.student;
+		        });
+		      }
 			      if(a.studentId && canSettleStudent) st=appendCharacterMemory(st,a.studentId,{
 			        term:state.term,
 			        kind:state.dialogue&&state.dialogue.kind,
@@ -982,6 +1092,7 @@ function reducer(state, a){
 			        settlementTitle:a.settlementTitle,
 			        note:a.memoryNote || `第${state.term}学期${state.dialogue&&state.dialogue.kind==='visit'?'家访':'私聊'}:老师选择「${a.choiceText||'结束对话'}」。`,
 			        summary:a.memorySummary,
+			        mutation:personalityMutation,
 			        messages:a.messages || [...compactMessages(state.dialogue&&state.dialogue.lines),{speaker:'老师',text:String(a.choiceText||'结束对话').slice(0,120)}].slice(-12)
 			      });
 	      st.dialogue=null; st.phase='classroom';
@@ -1090,7 +1201,8 @@ function isValidSave(s){
 }
 
 window.ENGINE={reducer,newGame,computeResult,settleTerm,drawCards,checkChain,rollTermEvent,applyFxToStudent,interestMod,localStatus,
-  isValidSave,store,compactMessages,clamp,ri,rnd,studentStatus,isActiveStudent,isGraduatedStudent,isDroppedStudent,chatTalentChance};
+  isValidSave,store,compactMessages,clamp,ri,rnd,studentStatus,isActiveStudent,isGraduatedStudent,isDroppedStudent,chatTalentChance,
+  normalizePersonalityState,evolvePersonalityState};
 })();
 </script>
 
@@ -1327,6 +1439,22 @@ function seatStatusTitle(s){
   if(isGraduated(s)) return `${s.name}已经走出大山,只可查看档案和成功对话`;
   return `${s.name}: ${seatStatusLabel(s)}; 学习值还差${toGo(s)}到${D.WIN}; 当前学习${Math.round(s.study)},兴趣${s.interest}/10,压力${Math.round(s.press)},家庭压迫${Math.round(s.fam)},信任${Math.round(s.trust)}。个人处境: ${SEAT_PERSONAL_HINTS[s.id]||'继续观察'}`;
 }
+const PERSONALITY_LABELS={
+  stage:['封闭','松动','信任','主动'],
+  trustStyle:{guarded:'还在防备',warming:'开始信任',open:'愿意敞开'},
+  motivation:{low:'动力很低',unstable:'动力摇摆',growing:'动力在长',strong:'动力很强'},
+  pressureStyle:{avoid:'遇压会躲',endure:'习惯硬扛',express:'能说压力',plan:'会想办法'}
+};
+function personalityStateText(stu){
+  const ps=stu&&stu.personalityState||{};
+  const stage=PERSONALITY_LABELS.stage[Math.max(0,Math.min(3,Number(ps.stage||0)))]||'封闭';
+  const parts=[
+    PERSONALITY_LABELS.trustStyle[ps.trustStyle]||'还在防备',
+    PERSONALITY_LABELS.motivation[ps.motivation]||'动力很低',
+    PERSONALITY_LABELS.pressureStyle[ps.pressureStyle]||'遇压会躲'
+  ];
+  return `${stage} · ${parts.join(' · ')}`;
+}
 
 	const STUDENT_ASSET_IDS = new Set(['damao','xiaohua','chouwa','xingxing','mumu','danzai','goushen','ahua','matui']);
 	const DIALOGUE_ASSET_IDS = new Set(['mumu','danzai','goushen','ahua','matui']);
@@ -1375,7 +1503,7 @@ function seatStatusTitle(s){
 		}
 			function characterMemory(state,id){
 			  const m=state&&state.memories&&state.memories[id];
-			  return m || {summary:'',notes:[],interactions:[]};
+			  return m || {summary:'',notes:[],interactions:[],mutations:[]};
 			}
 			const SAVE_KEY='shan_v3';
 			const ATTR_LABELS={study:'学习',studyRaw:'学习',interest:'兴趣',press:'压力',fam:'家庭压迫',trust:'信任'};
@@ -1728,6 +1856,7 @@ function ActionBar({state,dispatch,onChat,onVisit,onNext,toast}){
 				      choiceText:settlement.title,
 				      outcomeTag:settlement.outcome&&settlement.outcome.id,
 				      settlementTitle:settlement.title,
+				      choiceType:dialogue.lastChoiceType,
 				      memoryNote:settlement.memoryNote,
 				      memorySummary:settlement.memorySummary,
 				      statusUpdate:settlement.profileUpdate,
@@ -1974,6 +2103,15 @@ function StudentDetail({student, onClose}){
     <div className="detail-section">
       <div className="label">性格特点</div>
       <div className="detail-blurb">{core}</div>
+    </div>
+
+    <div className="detail-section">
+      <div className="label">人格成长</div>
+      <div className="detail-blurb">
+        <b>{personalityStateText(student)}</b>
+        {student.personalityState&&student.personalityState.lastMutation&&
+          <div style={{fontSize:12,color:'var(--soft)',marginTop:4}}>最近变化：{student.personalityState.lastMutation}</div>}
+      </div>
     </div>
 
     <div className="detail-section">
@@ -2282,6 +2420,7 @@ function App(){
 		      id:stu.id,name:stu.name,per:stu.per,family:stu.family,
 		      talent:D.TALENTS[stu.talent].name,trust:stu.trust,interest:stu.interest,
 		      study:Math.round(stu.study),press:Math.round(stu.press),fam:Math.round(stu.fam),
+		      personalityState:stu.personalityState,
 		      scene:tpl.sceneId?{id:tpl.sceneId,title:tpl.sceneTitle,lead:tpl.lead,opts:tpl.opts.map(o=>({type:o.type,t:o.t}))}:null,
 		      term:state.term,persona,memory:characterMemory(state,stu.id),
 		      recentLog:(state.log||[]).slice(-4)
@@ -2315,7 +2454,7 @@ function App(){
 		    ai=await AI.call('visit',{
 		      id:target.id,name:target.name,family:target.family,fam:target.fam,
 		      trust:target.trust,study:Math.round(target.study),press:Math.round(target.press),
-			      term:state.term,persona,memory:characterMemory(state,target.id),
+			      term:state.term,persona,memory:characterMemory(state,target.id),personalityState:target.personalityState,
 			      recentLog:(state.log||[]).slice(-4)
 			    },15000);
 	    let dlg;
@@ -2375,7 +2514,7 @@ function App(){
 	    const d=state.dialogue;
 	    dispatch({type:'RESOLVE_DIALOGUE',studentId:d.studentId,fx:opt.fx,unlock:opt.unlock,newPer:opt.newPer,choiceText:opt.t,
 	      memoryNote:opt.memoryNote||d.memoryNote,memorySummary:opt.memorySummary||d.memorySummary,
-	      statusUpdate:opt.statusUpdate,outcomeTag:opt.outcomeTag,settlementTitle:opt.settlementTitle,messages:opt.messages});
+	      statusUpdate:opt.statusUpdate,outcomeTag:opt.outcomeTag,settlementTitle:opt.settlementTitle,choiceType:opt.choiceType,messages:opt.messages});
 	    if(opt.unlock){ const s=state.students.find(x=>x.id===d.studentId); if(s){ toast(`${s.name}的${D.TALENTS[s.talent].name}天赋显现了!`); window.AUDIO&&AUDIO.sfx('talent'); window.FX&&FX.celebrate(); } }
 	  };
 	  const continueDialogue=()=>{
@@ -2394,7 +2533,7 @@ function App(){
 	    const persona=await loadPersona(stu.id) || personaFallback(stu);
 	    const baseLines=(visibleLines&&visibleLines.length?visibleLines:normalizeLines(d.lines,d.who,d.lead,d.portraitId||d.studentId||d.who)).slice(-40);
 	    const ai=await AI.call('reply',{
-	      id:stu.id,name:stu.name,kind:d.kind,persona,memory:characterMemory(state,stu.id),
+	      id:stu.id,name:stu.name,kind:d.kind,persona,memory:characterMemory(state,stu.id),personalityState:stu.personalityState,
 	      term:state.term,playerText:text,
 	      turnCount:d.turnCount||0,maxMessages:d.maxMessages||D.MAX_CHAT_MESSAGES,
 	      outcomeTags:Object.keys(outcomeCatalog(d.kind)),
