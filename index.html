@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>山那边 · 九学期</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%232b211b'/%3E%3Cpath d='M12 44h40L38 18 29 34l-5-8z' fill='%23f5efe0'/%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
 :root{
   --earth:#D9A441;--rice:#7BA05B;--dusk:#E8853A;--paper:#F5EFE0;
@@ -243,6 +244,47 @@ body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;b
 	.seat:nth-child(5){animation-delay:.6s}.seat:nth-child(6){animation-delay:1s}.seat:nth-child(7){animation-delay:.2s}
 	.seat:nth-child(8){animation-delay:1.4s}.seat:nth-child(9){animation-delay:.9s}
 	.seat:active,.seat.over{animation:none}
+	@keyframes seat-perk{0%,100%{box-shadow:0 4px 12px rgba(46,38,32,.18)}40%{box-shadow:0 0 0 3px rgba(217,164,65,.7),0 6px 16px rgba(217,164,65,.4);filter:brightness(1.08)}}
+	.seat.perk{animation:seat-perk 1s ease}
+	.seat.atrisk{border-color:var(--red)!important;box-shadow:0 0 0 2px rgba(194,91,78,.5),0 4px 12px rgba(194,91,78,.3)}
+	.risk-badge{position:absolute;top:3px;left:3px;font-size:12px;z-index:2;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3));animation:risk-blink 1.1s infinite}
+	@keyframes risk-blink{50%{opacity:.35}}
+	.predict-bar{font-size:12.5px;color:var(--ink);background:var(--paper);border-radius:8px;padding:7px 10px;margin-bottom:10px;line-height:1.5}
+	.predict-bar b{color:var(--dusk)}
+	.togo{font-size:12px;color:var(--soft);margin-top:4px}
+	.togo b{color:var(--red)}
+	/* 打工零工 */
+	.work-card{background:var(--card);border-radius:16px;padding:22px 18px;max-width:440px;margin:10px auto 0;box-shadow:0 4px 16px rgba(74,58,42,.14);text-align:center}
+	.work-q{font-size:18px;line-height:1.7;margin-bottom:18px}
+	.work-q b{color:var(--dusk)}
+	.work-opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+	.work-opt{font-family:inherit;font-size:18px;font-weight:700;padding:14px 8px;border:1.5px solid #e0d4ba;border-radius:12px;background:var(--paper);color:var(--ink);cursor:pointer;transition:transform .1s,background .15s}
+	.work-opt:active{transform:scale(.96)}
+	.work-opt:disabled{opacity:.5;cursor:not-allowed}
+	.work-score{margin-top:16px;font-size:14px;font-weight:700;color:var(--rice)}
+	.coin.bad{background:radial-gradient(circle at 35% 30%,#caa,#8a5a44);border-color:#5d4634}
+	.stroke{position:absolute;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe89a,#e8c14a);border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;color:#a8463b;cursor:pointer;box-shadow:0 0 0 0 rgba(255,255,255,.6);animation:stroke-pulse 1.1s ease forwards}
+	@keyframes stroke-pulse{0%{transform:scale(.4);opacity:.4;box-shadow:0 0 0 14px rgba(255,255,255,.0)}25%{transform:scale(1.1);opacity:1}100%{transform:scale(.8);opacity:.5}}
+	/* 卖菜滑块 */
+	.slider-val{font-size:30px;font-weight:800;color:var(--dusk);margin:6px 0}
+	.work-slider{width:90%;height:30px;cursor:grab}
+	/* 挑水蓄力 */
+	.water-wrap{max-width:420px;margin:14px auto 0;text-align:center;display:flex;flex-direction:column;align-items:center}
+	.water-gauge{position:relative;width:74px;height:220px;background:linear-gradient(#dfeaf2,#cfe0ee);border:3px solid #5B7FA0;border-radius:12px;overflow:hidden;box-shadow:inset 0 2px 8px rgba(46,38,32,.15)}
+	.water-target{position:absolute;left:0;width:100%;background:rgba(123,160,91,.5);border-top:2px solid var(--rice);border-bottom:2px solid var(--rice)}
+	.water-fill{position:absolute;left:0;bottom:0;width:100%;background:linear-gradient(#7fb0d8,#5B7FA0);transition:height .03s linear}
+	.water-mark{position:absolute;left:0;width:100%;height:3px;background:#fff;box-shadow:0 0 4px rgba(0,0,0,.3)}
+	.water-rope{margin-top:16px;font-family:inherit;font-size:16px;font-weight:700;padding:16px 30px;border:none;border-radius:14px;background:var(--blue);color:#fff;cursor:pointer;user-select:none;touch-action:none;box-shadow:0 4px 0 #46637e}
+	.water-rope:active{transform:translateY(3px);box-shadow:0 1px 0 #46637e}
+	.water-rope:disabled{opacity:.5}
+	/* 接稻：竹筐+落物 */
+	.mini{touch-action:none}
+	.fall-item{position:absolute;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:30px;transform:translate(-50%,-50%);pointer-events:none}
+	.basket{position:absolute;bottom:2%;width:64px;height:48px;display:flex;align-items:center;justify-content:center;font-size:42px;transform:translateX(-50%);pointer-events:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.3))}
+	/* 写春联时机条 */
+	.couplet-bar{position:relative;width:90%;height:26px;margin:6px auto 0;background:rgba(255,255,255,.25);border:2px solid #fff;border-radius:14px;overflow:hidden}
+	.couplet-zone{position:absolute;top:0;height:100%;background:rgba(255,232,138,.85);box-shadow:0 0 8px rgba(255,232,138,.8)}
+	.couplet-marker{position:absolute;top:-4px;width:5px;height:34px;background:#fff;border-radius:3px;transform:translateX(-50%);box-shadow:0 0 6px rgba(0,0,0,.35)}
 	.actbtn:active,.choice:active,.chat-chip:active,.tcard:active,.house-card:active{transform:scale(.96)}
 	@keyframes float-up{0%{opacity:0;transform:translate(-50%,4px) scale(.85)}15%{opacity:1;transform:translate(-50%,-2px) scale(1.05)}100%{opacity:0;transform:translate(-50%,-46px) scale(1)}}
 	.float-num{position:fixed;z-index:90;pointer-events:none;font-weight:800;font-size:17px;text-shadow:0 2px 4px rgba(0,0,0,.35),0 0 2px rgba(255,255,255,.5);color:var(--rice);transform:translate(-50%,0);animation:float-up 1.05s ease-out forwards;white-space:nowrap}
@@ -275,7 +317,8 @@ window.GAME_DATA = {
 	  SHOP: [
     {id:'book',  name:'习题册',   price:50,  fx:{study:10,press:5},  desc:'学习+10 压力+5', note:'虽然总让学生厌恶,但确实有用'},
     {id:'kfc',   name:'KFC一顿',  price:50,  fx:{press:-20,interest:2}, desc:'压力-20 兴趣+2', note:'跟着老师走竟然还有KFC吃!'},
-    {id:'qingyun',name:'送你平步青云',price:500,qingyun:true,onlyTalent:true,desc:'学习直接=70 走出大山',note:'明明有天赋,那就不要埋没了'},
+    {id:'qingyun',name:'送你平步青云',price:500,qingyun:true,onlyTalent:true,perTermOnce:true,desc:'学习直接=70 走出大山',note:'明明有天赋,那就不要埋没了'},
+    {id:'talentkit',name:'天赋装备',price:120,onlyTalent:true,fx:{study:8,interest:2},desc:'学习+8 兴趣+2',note:'专给已显出天赋的娃,好钢用在刀刃上'},
     {id:'ration',name:'香喷喷口粮', price:30, fx:{fam:-20}, desc:'家庭压迫-20', note:'有人送免费口粮,谁还下地干活'}
 	  ],
 
@@ -297,6 +340,14 @@ window.GAME_DATA = {
   ],
   CATS: {study:{name:'学习强化',color:'#C25B4E'},interest:{name:'兴趣培养',color:'#7BA05B'},care:{name:'生活关怀',color:'#E8853A'}},
 
+	  /* 打工零工(每次随机出3个让玩家选1个)。收益统一收口到 0~200,不破坏经济平衡 */
+	  JOBS: [
+	    {id:'sell',    ico:'🥬', name:'集市卖菜', desc:'拖滑块凑出正确找零再确认（精准拖动+心算）'},
+	    {id:'water',   ico:'🪣', name:'挑水浇园', desc:'长按蓄力，水满到刻度松手（按住—松开蓄力）'},
+	    {id:'harvest', ico:'🌾', name:'农忙接稻', desc:'拖动竹筐接住落下的稻捆、躲开烂稻（拖动+躲避）'},
+	    {id:'couplet', ico:'🧧', name:'写春联',   desc:'滑块扫到"墨韵甜区"时下笔（看时机）'}
+	  ],
+
 	  /* 学期结算时演出的本地事件库（AI失败兜底，也是日常）。{S}=随机在校学生 */
 	  EVENTS: [
 	    {scene:'classroom_topdown',t:'清晨你到校,老远听见教室里的读书声——没人要求,娃们自己开始了早读,山谷里全是回音。'},
@@ -308,6 +359,53 @@ window.GAME_DATA = {
 	    {scene:'playground',t:'县文化馆下乡采风,在墙上娃们的画前停下了脚步,留了联系方式。'},
 	    {scene:'road',t:'夜里下大雨,{S}家那条山路塌了一截,{S}绕了两小时山路来上学,裤腿全是泥。'}
 	  ],
+
+	  /* 学期突发事件（开局决策）。minTerm 限制最早出现学期;crisis=true 会随机绑定一名在校学生({S})。
+	     opt: fund 改基金 / classFx 作用全班在校生 / selfFx 作用被绑定的学生 / mod 设入本学期修正(termMods) */
+	  TERM_EVENTS: [
+	    {id:'rain', minTerm:2, scene:'road', title:'暴雨冲毁山路', desc:'一夜暴雨,通往村里的山路塌了一截。娃们上学要绕远路,你家访也难走。',
+	      opts:[{t:'掏钱雇人抢修山路（¥-50）', fund:-50},
+	            {t:'将就一学期，路难走（本学期家访效果打折）', mod:{visitMult:0.6}}]},
+	    {id:'subsidy', minTerm:2, scene:'office', title:'支教补助下来了', desc:'县里的支教帮扶补助拨下来了,老陈把信纸抚平了三遍。',
+	      opts:[{t:'攒着，留作大用（¥+120）', fund:120},
+	            {t:'先给最困难的娃添置点东西（¥+60，全班家庭压迫-4）', fund:60, classFx:{fam:-4}}]},
+	    {id:'crisis', minTerm:3, scene:'road', crisis:true, title:'{S}家里出急事', desc:'{S}今天没来。捎话说家里出了急事,怕是要把娃留在家里帮忙了。',
+	      opts:[{t:'放下手头的事，先骑车去看看（¥-40）', fund:-40, selfFx:{fam:-15,trust:5}},
+	            {t:'这学期实在腾不开手', selfFx:{fam:25}}]},
+	    {id:'parentmeet', minTerm:2, scene:'classroom_topdown', title:'家长会风波', desc:'开家长会。有几个家长对"读那么多书有啥用"提出了质疑。',
+	      opts:[{t:'一个个讲娃的进步，诚恳沟通（全班信任+4）', classFx:{trust:4}},
+	            {t:'被当场顶了几句，没接住（全班信任-3、压力+3）', classFx:{trust:-3,press:3}}]},
+	    {id:'flu', minTerm:3, scene:'classroom_topdown', title:'流感来袭', desc:'换季,班里接连有娃发烧请假,人心也有点散。',
+	      opts:[{t:'买药熬姜汤，挨个照看（¥-30，全班压力-6）', fund:-30, classFx:{press:-6}},
+	            {t:'让娃们自己扛一扛（全班压力+8）', classFx:{press:8}}]},
+	    {id:'donate', minTerm:4, scene:'classroom_topdown', title:'城里捐来一箱书', desc:'一家公益机构捐来一箱课外书,娃们围着箱子不肯走。',
+	      opts:[{t:'分给爱读书的娃（全班兴趣+2）', classFx:{interest:2}},
+	            {t:'办个"班级读书角"（全班兴趣+1、信任+2）', classFx:{interest:1,trust:2}}]}
+	  ],
+
+	  /* 里程碑剧情：固定学期开局播放（term1=开场,已由 INTRO_DIALOGUE 承担）。初稿,可润色 */
+	  MILESTONES: {
+	    3: {kind:'story', scene:'office', lines:[
+	      {speaker:'老陈', text:'听说你又想给哪个娃下血本？'},
+	      {speaker:'主角', mc:true, text:'丑娃天天踢球，我寻思给他买双好球鞋……'},
+	      {speaker:'老陈', text:'你看清楚了没？是真有天赋，还是就爱玩？'},
+	      {speaker:'老陈', text:'钱要花在刀刃上。看准了再下注，别学你当年——三分钟热度。'},
+	      {speaker:'主角', mc:true, text:'……行行行，我多观察观察。'},
+	      {speaker:null, text:'（提示：天赋"显现"后再投资才稳；没显现就砸钱，多半打水漂。）'}
+	    ]},
+	    6: {kind:'story', scene:'playground', lines:[
+	      {speaker:null, text:'乡里统考的成绩贴出来了，墙根围了一圈人。'},
+	      {speaker:'老陈', text:'比上一届强。但别松劲，山还在那儿。'},
+	      {speaker:'主角', mc:true, text:'县文化馆的人来过，说想看看娃们的画和节目。'},
+	      {speaker:'老陈', text:'机会来了就接住。能让娃们看见山外面，比啥都强。'}
+	    ]},
+	    9: {kind:'story', scene:'office', lines:[
+	      {speaker:'老陈', text:'最后一程了。这一届，我看你比我当年还上心。'},
+	      {speaker:'主角', mc:true, text:'您这是要撂挑子？'},
+	      {speaker:'老陈', text:'我老了，跑不动了。接下来，看你的。'},
+	      {speaker:'老陈', text:'把能送的，都送出去。一个，都别落下。'}
+	    ]}
+	  },
 
 	  INTRO_DIALOGUE: {
 	    who:'老陈', portraitId:'chen', scene:'office', mc:false, kind:'intro', opts:null,
@@ -481,7 +579,16 @@ const store={
 	      interactions:Array.isArray(memories[s.id].interactions)?memories[s.id].interactions.slice(-12):[]
 	    };
 	  });
-	  return {...state, memories};
+	  const students=(state.students||[]).map(s=>Array.isArray(s.flags)?s:{...s,flags:[]});
+	  return {...state, memories, students,
+	    recentCards:Array.isArray(state.recentCards)?state.recentCards:[],
+	    termMods:state.termMods||{},
+	    termEvent:state.termEvent||null,
+	    pendingTermEvent:state.pendingTermEvent||null,
+	    shownMilestones:Array.isArray(state.shownMilestones)?state.shownMilestones:[],
+	    qingyunUsed:state.qingyunUsed||0,
+	    qingyunThisTerm:!!state.qingyunThisTerm,
+	    tutorialDone:!!state.tutorialDone };
 	}
 		function appendCharacterMemory(state, id, entry){
 		  if(!id) return state;
@@ -508,15 +615,23 @@ function newGame(){
   const students=D.STUDENTS.map((s,i)=>({
     id:s.id,name:s.name,talent:s.talent,talentShown:s.shown,
     study:0, interest:0, press:10, fam:s.fam, trust:s.trust,
-    per:s.per, family:s.family, tag:s.tag, seat:i, dropped:false, status:''
+    per:s.per, family:s.family, tag:s.tag, seat:i, dropped:false, status:'', flags:[]
   }));
 	  return {
-		    v:3, term:1, ap:D.AP, fund:D.START_FUND,
+		    v:4, term:1, ap:D.AP, fund:D.START_FUND,
 	    students,
-	    phase:'dialogue',            // classroom|dialogue|minigame|taskcard|settle|ending
+	    phase:'dialogue',            // classroom|dialogue|minigame|taskcard|settle|ending|termevent
 	    dialogue:{...D.INTRO_DIALOGUE},
 	    pendingEvent:null,           // {text,scene} 学期事件
 	    drawn:null, roundResult:null,
+	    recentCards:[],              // 最近5学期任务卡类别(连锁判定)
+	    termMods:{},                 // 本学期修正(突发事件设置,如 visitMult)
+	    termEvent:null,              // 当前待决策的突发事件实例
+	    pendingTermEvent:null,       // 里程碑剧情后待播的突发事件
+	    shownMilestones:[],          // 已播放的里程碑学期
+	    qingyunUsed:0,               // 平步青云累计使用次数(价格递增)
+	    qingyunThisTerm:false,       // 本学期是否已用平步青云
+	    tutorialDone:false,          // 新手提示是否已出
 	    swapMode:false, log:[], memories:blankMemories(students)
 	  };
 	}
@@ -572,13 +687,58 @@ function drawCards(){
   return picked;
 }
 
-/* 学期结算：应用任务卡到全班 → 压迫漂移 → 辍学 → 取一条事件 */
+/* 连锁判定：最近连续3学期同类任务卡 → 触发连锁效应 */
+function checkChain(recent){
+  const r=Array.isArray(recent)?recent:[];
+  if(r.length<3) return null;
+  const last3=r.slice(-3);
+  if(last3.every(c=>c==='interest')) return {id:'talent_chain', title:'天赋觉醒前兆', talentReveal:0.35,
+    log:'🔗 连锁·天赋觉醒前兆：连着几堂兴趣课，孩子们身上的光更藏不住了'};
+  if(last3.every(c=>c==='study')) return {id:'pressure_chain', title:'高压临界', classFx:{press:12}, studyMult:0.15,
+    log:'🔗 连锁·高压临界：连轴的学习课把弦绷到了极限，逼出了成绩，也压垮了情绪'};
+  if(last3.every(c=>c==='care')) return {id:'warmth_chain', title:'班级如家', classFx:{trust:4},
+    log:'🔗 连锁·班级如家：连着的关怀让教室像个家，孩子们更信你了'};
+  return null;
+}
+
+/* 抽取一个本学期突发事件（满足 minTerm，按概率）。term1 不触发，term2 降频 */
+function rollTermEvent(state){
+  const term=state.term;
+  if(term<2) return null;
+  const prob = term===2 ? 0.35 : 0.6;
+  if(Math.random()>prob) return null;
+  const pool=D.TERM_EVENTS.filter(e=>term>=(e.minTerm||2));
+  if(!pool.length) return null;
+  const e=rnd(pool);
+  const alive=state.students.filter(s=>!s.dropped);
+  let crisisId=null, name='';
+  if(e.crisis && alive.length){ const t=rnd(alive); crisisId=t.id; name=t.name; }
+  const fill=s=>String(s||'').replace(/\{S\}/g,name);
+  return {id:e.id, scene:e.scene, crisisId,
+    title:fill(e.title), desc:fill(e.desc),
+    opts:e.opts.map(o=>({...o, t:fill(o.t)}))};
+}
+
+/* 学期结算：应用任务卡到全班 → 连锁 → 压迫漂移 → 辍学 → 取一条事件 */
 function settleTerm(state, card){
+  const chain=checkChain(state.recentCards);
   let students=state.students.map(s=>{
     if(s.dropped) return s;
     let ns=applyFxToStudent(s, card.fx);
+    if(chain && chain.classFx) ns=applyFxToStudent(ns, chain.classFx);
+    if(chain && chain.studyMult && card.fx.study) ns=applyFxToStudent(ns, {study:card.fx.study*chain.studyMult});
+    if(chain && chain.talentReveal && ns.talent!=='none' && !ns.talentShown && Math.random()<chain.talentReveal) ns={...ns, talentShown:true};
     if(ns.press>80) ns.interest=clamp(ns.interest-1,0,10);   // 高压掉兴趣
     ns.fam=clamp(ns.fam+D.FAM_DRIFT,0,100);                   // 家庭压迫自然上涨
+    return ns;
+  });
+  // 座位相邻影响：每学期同桌按性格互相施加小修正(3×3网格,上下左右)
+  const NB={'静':{study:1},'闹':{press:2,study:-1},'暖':{trust:1,press:-1},'敏感':{}};
+  const bySeat={}; students.forEach(s=>{bySeat[s.seat]=s;});
+  const neighborsOf=seat=>{const r=Math.floor(seat/3),c=seat%3,out=[];
+    [[r,c-1],[r,c+1],[r-1,c],[r+1,c]].forEach(([rr,cc])=>{if(rr>=0&&rr<3&&cc>=0&&cc<3)out.push(rr*3+cc);}); return out;};
+  students=students.map(s=>{ if(s.dropped) return s;
+    let ns=s; neighborsOf(s.seat).forEach(ni=>{const nb=bySeat[ni]; if(nb&&!nb.dropped){const fx=NB[nb.tag]; if(fx) ns=applyFxToStudent(ns,fx);}});
     return ns;
   });
   const dropouts=[];
@@ -590,8 +750,9 @@ function settleTerm(state, card){
 	  const picked=alive.length? rnd(D.EVENTS) : {scene:'ending_office',t:'教室空了一角。'};
 	  const evt={text:picked.t.replace(/\{S\}/g, alive.length?rnd(alive).name:''), scene:picked.scene||'classroom_topdown'};
   const log=[`📋 第${state.term}学期:${card.title}`];
+  if(chain) log.push(chain.log);
   dropouts.forEach(n=>log.push(`❌ ${n}辍学离开了……家庭压迫太大,信任不够`));
-  return {students, evt, dropouts, log};
+  return {students, evt, dropouts, log, chain};
 }
 
 /* ============ 总管 reducer：所有操作的唯一入口 ============ */
@@ -633,7 +794,13 @@ function reducer(state, a){
 
 	    case 'RESOLVE_DIALOGUE': {                 // a.fx,a.studentId,a.unlock
 	      let st={...state};
-		      if(a.studentId && a.fx) st=mapStu(st,a.studentId,s=>applyFxToStudent(s,a.fx));
+		      if(a.studentId && a.fx){
+			      let fx=a.fx;
+			      if(state.dialogue && state.dialogue.kind==='visit' && state.termMods && state.termMods.visitMult && fx.fam){
+			        fx={...fx, fam: Math.round(fx.fam*state.termMods.visitMult)};   // 暴雨等修正:家访效果打折
+			      }
+			      st=mapStu(st,a.studentId,s=>applyFxToStudent(s,fx));
+		      }
 		      if(a.studentId && a.unlock) st=mapStu(st,a.studentId,s=>({...s,talentShown:true}));
 		      if(a.studentId && a.newPer) st=mapStu(st,a.studentId,s=>({...s,per:a.newPer}));
 		      if(a.studentId && a.statusUpdate) st=mapStu(st,a.studentId,s=>({...s,status:a.statusUpdate}));
@@ -650,7 +817,10 @@ function reducer(state, a){
 	      st.dialogue=null; st.phase='classroom';
 	      return st;
 	    }
-    case 'CLOSE_DIALOGUE': return {...state, dialogue:null, phase:'classroom'};
+    case 'CLOSE_DIALOGUE':
+      if(state.dialogue && state.dialogue.kind==='story' && state.pendingTermEvent)   // 里程碑剧情后接突发事件
+        return {...state, dialogue:null, termEvent:state.pendingTermEvent, pendingTermEvent:null, phase:'termevent'};
+      return {...state, dialogue:null, phase:'classroom'};
 
     case 'WORK_DONE':                          // a.amount 小游戏得分
       return {...state, fund:state.fund + clamp(a.amount,0,200), ap:state.ap-1, phase:'classroom'};
@@ -667,12 +837,15 @@ function reducer(state, a){
 
     case 'BUY': {                              // a.item,a.studentId
       const it=D.SHOP.find(x=>x.id===a.item); if(!it) return state;
-      if(state.fund<it.price) return state;
       const stu=state.students.find(s=>s.id===a.studentId);
       if(!stu||stu.dropped) return state;
       if(it.onlyTalent && !stu.talentShown) return state;
-      let st={...state, fund:state.fund-it.price};
+      if(it.perTermOnce && state.qingyunThisTerm) return state;          // 本学期已用过平步青云
+      const price = it.qingyun ? it.price + (state.qingyunUsed||0)*200 : it.price;  // 平步青云价格递增
+      if(state.fund<price) return state;
+      let st={...state, fund:state.fund-price};
       st=mapStu(st,a.studentId,s=>applyFxToStudent(s, it.qingyun?{qingyun:true}:it.fx));
+      if(it.qingyun) st={...st, qingyunUsed:(st.qingyunUsed||0)+1, qingyunThisTerm:true};
       return st;
     }
 
@@ -680,8 +853,9 @@ function reducer(state, a){
       return {...state, phase:'taskcard', drawn:drawCards()};
 
     case 'PICK_CARD': {                        // a.card
-      const r=settleTerm(state, a.card);
-      return {...state, students:r.students, pendingEvent:r.evt, log:r.log, phase:'settle'};
+      const recentCards=[...(state.recentCards||[]), a.card.cat].slice(-5);
+      const r=settleTerm({...state, recentCards}, a.card);
+      return {...state, recentCards, students:r.students, pendingEvent:r.evt, log:r.log, phase:'settle'};
     }
 
     case 'CONTINUE': {                         // 结算页点继续
@@ -689,7 +863,25 @@ function reducer(state, a){
         return {...state, phase:'ending', roundResult:computeResult(state)};
       }
       const students=state.students.map(s=>({...s, status:''}));  // 清空状态待刷新
-      return {...state, term:state.term+1, ap:D.AP, pendingEvent:null, drawn:null, phase:'classroom', students};
+      const nt=state.term+1;
+      const ns={...state, term:nt, ap:D.AP, pendingEvent:null, drawn:null, termMods:{}, qingyunThisTerm:false, students};
+      const te=rollTermEvent(ns);                // 本学期突发事件(可能为null)
+      const ms=D.MILESTONES[nt];                 // 里程碑剧情优先,播完再接突发事件
+      if(ms && !ns.shownMilestones.includes(nt)){
+        return {...ns, shownMilestones:[...ns.shownMilestones, nt], pendingTermEvent:te||null,
+          dialogue:{...ms, who:'', studentId:null}, phase:'dialogue'};
+      }
+      return {...ns, termEvent:te||null, phase: te?'termevent':'classroom'};
+    }
+
+    case 'RESOLVE_TERM_EVENT': {                // a.opt 玩家所选选项
+      const opt=a.opt||{}; let st={...state};
+      if(opt.fund) st={...st, fund:Math.max(0, st.fund+opt.fund)};
+      if(opt.classFx) st={...st, students:st.students.map(s=> s.dropped?s:applyFxToStudent(s,opt.classFx))};
+      if(opt.selfFx && st.termEvent && st.termEvent.crisisId) st=mapStu(st, st.termEvent.crisisId, s=>applyFxToStudent(s,opt.selfFx));
+      st.termMods={...(st.termMods||{}), ...(opt.mod||{})};
+      st.termEvent=null; st.phase='classroom';
+      return st;
     }
 
     case 'SET_STATUS':                         // a.map: {id:status文案}
@@ -700,10 +892,10 @@ function reducer(state, a){
 }
 
 function isValidSave(s){
-  return !!(s && s.v===3 && typeof s.term==='number' && Array.isArray(s.students) && s.students.length===9 && s.phase);
+  return !!(s && s.v>=3 && typeof s.term==='number' && Array.isArray(s.students) && s.students.length===9 && s.phase);
 }
 
-window.ENGINE={reducer,newGame,computeResult,settleTerm,drawCards,applyFxToStudent,interestMod,localStatus,isValidSave,store,compactMessages,clamp,ri,rnd};
+window.ENGINE={reducer,newGame,computeResult,settleTerm,drawCards,checkChain,rollTermEvent,applyFxToStudent,interestMod,localStatus,isValidSave,store,compactMessages,clamp,ri,rnd};
 })();
 </script>
 
@@ -736,13 +928,17 @@ window.AI = (function(){
    静音状态持久化;首次用户手势时解锁音频。
    ================================================================= */
 window.AUDIO = (function(){
-  let ctx=null, masterMuted=false, unlocked=false;
-  const bgmCache={}, sfxFiles={}; let curBgm=null;
-  try{ masterMuted = localStorage.getItem('shan_muted')==='1'; }catch(e){}
+  let ctx=null, masterMuted=false, unlocked=false, vol=0.8;
+  const bgmCache={}, sfxFiles={}, listeners=new Set(); let curBgm=null, targetBgm=null;
+  try{ masterMuted = localStorage.getItem('shan_muted')==='1'; const v=parseFloat(localStorage.getItem('shan_vol')); if(!isNaN(v)) vol=v; }catch(e){}
 
   function ac(){ if(!ctx){ try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ ctx=null; } } return ctx; }
-  function unlock(){ if(unlocked) return; unlocked=true; const c=ac(); if(c&&c.state==='suspended') c.resume();
-    if(window.Howler&&Howler.ctx&&Howler.ctx.state==='suspended'){ try{Howler.ctx.resume();}catch(e){} } }
+  function emit(){ const state={muted:masterMuted, volume:vol}; listeners.forEach(fn=>{try{fn(state);}catch(e){}}); }
+  function onChange(fn){ listeners.add(fn); return ()=>listeners.delete(fn); }
+  function unlock(retryBgm){ unlocked=true; const c=ac(); if(c&&c.state==='suspended') c.resume();
+    if(window.Howler&&Howler.ctx&&Howler.ctx.state==='suspended'){ try{Howler.ctx.resume();}catch(e){} }
+    if(retryBgm&&targetBgm){ const retry=targetBgm; curBgm=null; bgm(retry); }
+  }
 
   // —— 合成音效 ——
   function tone(specs){
@@ -751,7 +947,7 @@ window.AUDIO = (function(){
       const o=c.createOscillator(), g=c.createGain();
       o.type=s.type||'sine'; o.frequency.setValueAtTime(s.f, now+(s.t||0));
       if(s.f2) o.frequency.exponentialRampToValueAtTime(s.f2, now+(s.t||0)+(s.d||0.12));
-      const peak=(s.g||0.18), at=s.a||0.005, dur=s.d||0.12;
+      const peak=(s.g||0.18)*vol, at=s.a||0.005, dur=s.d||0.12;
       g.gain.setValueAtTime(0.0001, now+(s.t||0));
       g.gain.exponentialRampToValueAtTime(peak, now+(s.t||0)+at);
       g.gain.exponentialRampToValueAtTime(0.0001, now+(s.t||0)+at+dur);
@@ -772,39 +968,72 @@ window.AUDIO = (function(){
     win:   ()=>tone([{f:523,type:'sine',g:0.14,d:0.14},{f:659,type:'sine',g:0.14,d:0.14,t:0.12},{f:784,type:'sine',g:0.14,d:0.14,t:0.24},{f:1046,type:'sine',g:0.15,d:0.3,t:0.36}]),
     toast: ()=>tone([{f:700,type:'sine',g:0.08,d:0.06}])
   };
+  const SFX_SRC={
+    tap:'assets/audio/sfx/tap.mp3',
+    page:'assets/audio/sfx/page.mp3',
+    card:'assets/audio/sfx/card.mp3',
+    coin:'assets/audio/sfx/coin.mp3',
+    buy:'assets/audio/sfx/buy.mp3',
+    up:'assets/audio/sfx/up.mp3',
+    down:'assets/audio/sfx/down.mp3',
+    talent:'assets/audio/sfx/talent.mp3',
+    drop:'assets/audio/sfx/drop.mp3',
+    win:'assets/audio/sfx/win.mp3',
+    toast:'assets/audio/sfx/toast.mp3'
+  };
+  const SFX_GAIN={ tap:.45,page:.55,card:.55,coin:.7,buy:.65,up:.58,down:.62,talent:.62,drop:.58,win:.68,toast:.48 };
+  function ensureSfx(name){
+    if(!window.Howl || !SFX_SRC[name]) return null;
+    if(sfxFiles[name]===null) return null;
+    if(!sfxFiles[name]){
+      try{
+        sfxFiles[name]=new Howl({src:[SFX_SRC[name]],volume:(SFX_GAIN[name]||.6)*vol,preload:true,onloaderror:()=>{sfxFiles[name]=null;}});
+      }catch(e){ sfxFiles[name]=null; }
+    }
+    return sfxFiles[name];
+  }
   function sfx(name){ if(masterMuted) return; unlock();
-    if(sfxFiles[name]){ try{ sfxFiles[name].play(); return; }catch(e){} }
+    const h=ensureSfx(name);
+    if(h){ try{ h.volume((SFX_GAIN[name]||.6)*vol); h.play(); return; }catch(e){} }
     (SYNTH[name]||SYNTH.tap)();
   }
 
   // —— BGM(文件可选,缺省静默) ——
   const BGM_SRC={ theme:'assets/audio/bgm/theme.mp3', class:'assets/audio/bgm/class.mp3', chat:'assets/audio/bgm/chat.mp3', ending:'assets/audio/bgm/ending.mp3' };
   function bgm(name){
-    if(curBgm===name) return; curBgm=name;
+    targetBgm=name;
     if(!window.Howl){ return; }
+    if(curBgm===name && bgmCache[name] && bgmCache[name].playing()) return;
     Object.keys(bgmCache).forEach(k=>{ const h=bgmCache[k]; if(k!==name&&h&&h.playing&&h.playing()) h.fade(h.volume(),0,600); });
-    if(!name) return;
+    if(!name){ curBgm=null; return; }
     if(!bgmCache[name]){
       try{ bgmCache[name]=new Howl({src:[BGM_SRC[name]],loop:true,volume:0,html5:true,onloaderror:()=>{bgmCache[name]=null;}}); }
       catch(e){ bgmCache[name]=null; }
     }
-    const h=bgmCache[name]; if(!h||masterMuted) return;
-    unlock(); try{ if(!h.playing()) h.play(); h.fade(0,0.4,800); }catch(e){}
+    const h=bgmCache[name]; curBgm=name; if(!h||masterMuted) return;
+    unlock(false); try{ if(!h.playing()) h.play(); h.fade(0,0.4*vol,800); h.once('playerror',()=>{curBgm=null;}); }catch(e){ curBgm=null; }
   }
   function setMuted(m){ masterMuted=!!m; try{ localStorage.setItem('shan_muted', m?'1':'0'); }catch(e){}
     if(window.Howler){ try{ Howler.mute(masterMuted); }catch(e){} }
     if(masterMuted){ Object.keys(bgmCache).forEach(k=>{ const h=bgmCache[k]; try{ h&&h.pause&&h.pause(); }catch(e){} }); }
     else { const c=curBgm; curBgm=null; bgm(c); }
+    emit();
   }
   function isMuted(){ return masterMuted; }
 
   // 首次手势解锁 + 通用点击音
-  document.addEventListener('pointerdown',(e)=>{ unlock();
+  document.addEventListener('pointerdown',(e)=>{ unlock(true);
     const t=e.target.closest&&e.target.closest('button,.actbtn,.choice,.chat-chip,.tcard,.house-card,.stu-row,.seat-info,.chat-close,.chat-send');
     if(t && !t.disabled){ sfx('tap'); }
   }, true);
 
-  return { sfx, bgm, setMuted, isMuted, unlock };
+  function setVolume(v){ vol=Math.max(0,Math.min(1,v)); try{ localStorage.setItem('shan_vol', String(vol)); }catch(e){}
+    const h=curBgm&&bgmCache[curBgm]; if(h&&!masterMuted){ try{ h.volume(0.4*vol); }catch(e){} }
+    Object.keys(sfxFiles).forEach(k=>{ const s=sfxFiles[k]; if(s){ try{s.volume((SFX_GAIN[k]||.6)*vol);}catch(e){} } });
+    emit();
+  }
+  function getVolume(){ return vol; }
+  return { sfx, bgm, setMuted, isMuted, setVolume, getVolume, onChange, unlock };
 })();
 
 /* =================================================================
@@ -844,6 +1073,9 @@ window.FX = (function(){
    ================================================================= */
 const {useState,useEffect,useRef,useReducer,useCallback}=React;
 const D=window.GAME_DATA, E=window.ENGINE, AI=window.AI;
+/* 辍学预警：接近阈值(80/25)即提前告警 */
+const atRisk=s=>!!s && !s.dropped && s.study<D.WIN && s.fam>=65 && s.trust<35;
+const toGo=s=>Math.max(0,Math.ceil(D.WIN-s.study));
 
 	const STUDENT_ASSET_IDS = new Set(['damao','xiaohua','chouwa','xingxing','mumu','danzai','goushen','ahua','matui']);
 	const ADULT_ASSET_IDS = new Set(['teacher','chen']);
@@ -1016,9 +1248,10 @@ function useTyper(text,speed){
 }
 
 /* ---- 顶栏 ---- */
-function Hud({state,onShop,onLog}){
+function Hud({state,onShop,onLog,onSettings}){
   const yr=1997+state.term;
   const [muted,setMuted]=useState(window.AUDIO?AUDIO.isMuted():false);
+  useEffect(()=> window.AUDIO&&AUDIO.onChange?AUDIO.onChange(s=>setMuted(s.muted)):undefined,[]);
   const toggleMute=()=>{ const m=!muted; setMuted(m); window.AUDIO&&AUDIO.setMuted(m); };
   return(<div className="hud">
     <span className="year">{yr}年 · 第{state.term}/{D.TERMS}学期</span>
@@ -1027,7 +1260,28 @@ function Hud({state,onShop,onLog}){
     <button className="btn small" onClick={onShop}>🛒商店</button>
     <button className="btn small ghost" onClick={onLog}>📔日志</button>
     <button className="mute" onClick={toggleMute} title={muted?'取消静音':'静音'} aria-label="静音开关">{muted?'🔇':'🔊'}</button>
+    <button className="mute" onClick={onSettings} title="设置" aria-label="设置">⚙</button>
   </div>);
+}
+
+/* ---- 设置面板（音量/静音）---- */
+function Settings({onClose}){
+  const [vol,setVol]=useState(window.AUDIO?Math.round(AUDIO.getVolume()*100):80);
+  const [muted,setMuted]=useState(window.AUDIO?AUDIO.isMuted():false);
+  useEffect(()=> window.AUDIO&&AUDIO.onChange?AUDIO.onChange(s=>{setMuted(s.muted);setVol(Math.round(s.volume*100));}):undefined,[]);
+  return(<div className="modal-bg" onClick={onClose}><div className="modal" style={{maxWidth:340}} onClick={e=>e.stopPropagation()}>
+    <h3>设置 <button className="btn small ghost" onClick={onClose}>✕</button></h3>
+    <div style={{margin:'10px 0'}}>
+      <div className="row" style={{justifyContent:'space-between',marginBottom:6}}><span>音量</span><b>{vol}%</b></div>
+      <input type="range" min="0" max="100" value={vol} style={{width:'100%'}}
+        onChange={e=>{const v=+e.target.value;setVol(v);window.AUDIO&&AUDIO.setVolume(v/100);}}/>
+    </div>
+    <div className="row" style={{justifyContent:'space-between',marginTop:8}}>
+      <span>静音</span>
+      <button className="btn small" onClick={()=>{const m=!muted;setMuted(m);window.AUDIO&&AUDIO.setMuted(m);}}>{muted?'🔇 已静音':'🔊 开启'}</button>
+    </div>
+    <div style={{fontSize:11.5,color:'var(--soft)',marginTop:12,lineHeight:1.6}}>背景音乐与音效已接入统一风格素材;加载失败时会自动降级为合成音。设置会自动保存。</div>
+  </div></div>);
 }
 
 /* ---- 教室 + 拖拽换位 ---- */
@@ -1035,6 +1289,10 @@ function Classroom({state,dispatch,toast}){
   const seats=[...Array(9)].map((_,i)=> state.students.find(s=>s.seat===i));
   const [drag,setDrag]=useState(null), [over,setOver]=useState(null);
   const [detail,setDetail]=useState(null);
+  const [perk,setPerk]=useState(-1);
+
+  // 教室"活气"：偶尔有个孩子抬起头
+  useEffect(()=>{ let off=null; const id=setInterval(()=>{ const alive=state.students.filter(s=>!s.dropped); if(!alive.length) return; const seat=alive[Math.floor(Math.random()*alive.length)].seat; setPerk(-1); requestAnimationFrame(()=>setPerk(seat)); clearTimeout(off); off=setTimeout(()=>setPerk(-1),1050); },2600); return()=>{clearInterval(id);clearTimeout(off);}; },[state.students]);
 
   // 指针拖拽（手机/电脑通用）
   const onDown=(i)=>(e)=>{ if(!seats[i]||seats[i].dropped) return; setDrag(i); };
@@ -1053,12 +1311,13 @@ function Classroom({state,dispatch,toast}){
       <div className="seatgrid">
         {seats.map((s,i)=> s?(
           <div key={i} data-i={i}
-            className={'seat'+(drag===i?' dragging':'')+(over===i?' over':'')+(s.dropped?' gone':'')}
+            className={'seat'+(drag===i?' dragging':'')+(over===i?' over':'')+(s.dropped?' gone':'')+(perk===i&&drag===null?' perk':'')+(atRisk(s)?' atrisk':'')}
             onPointerDown={onDown(i)} onTouchStart={onDown(i)}>
             {!s.dropped && <button className="seat-info" onClick={e=>{e.stopPropagation();setDetail(s);}} title="查看详情">📋</button>}
+            {atRisk(s) && <span className="risk-badge" title="快撑不住了">⚠</span>}
             <Avatar seed={s.id} size={40}/>
             <div className="nm">{s.name}{s.talentShown&&D.TALENTS[s.talent].ico?' '+D.TALENTS[s.talent].ico:''}</div>
-            <div className="tg">{s.dropped?'已离开':(s.study>=D.WIN?'已走出大山':'兴趣'+s.interest+'/10')}</div>
+            <div className="tg">{s.dropped?'已离开':(s.study>=D.WIN?'✅已走出大山':'距大山 '+Math.max(0,Math.ceil(D.WIN-s.study)))}</div>
           </div>
         ):<div key={i} className="seat" style={{opacity:.2}}/> )}
       </div>
@@ -1098,7 +1357,7 @@ function ActionBar({state,dispatch,onChat,onVisit,onNext,toast}){
 			  const [typed,done,skip]=useTyper(current.text,24);
 			  const isLast=lineIndex>=lines.length-1;
 			  const showOpts = dialogue.opts && done && isLast;
-			  const next=()=>{ if(!done){skip();return;} if(!isLast) setLineIndex(i=>i+1); else onClose(); };
+			  const next=()=>{ if(!done){skip();return;} if(!isLast){ setLineIndex(i=>i+1); window.AUDIO&&AUDIO.sfx('page'); } else onClose(); };
 			  const submitFree=()=>{ const txt=freeText.trim(); if(!txt||replying||!onFreeReply) return; setFreeText(''); onFreeReply(txt, lines); };
 				  if(isLiveChat){
 				    const sub=dialogue.kind==='visit'?'家访':'私聊';
@@ -1257,14 +1516,16 @@ function VisitPicker({state,onPick,onClose}){
 	  const alive=state.students.filter(s=>!s.dropped);
 	  return(<div className="modal-bg" onClick={onClose}><div className="modal shop-modal" onClick={e=>e.stopPropagation()}>
 	    <h3>🛒 集市小店 · ¥{state.fund} <button className="btn small ghost" onClick={onClose}>✕</button></h3>
-	    {!pick && D.SHOP.map(it=>(
-	      <div key={it.id} className="shop-item">
-	        <img className="shop-icon" src={uiPath(it.id)} alt={`${it.name}道具`}/>
-	        <div className="info"><div className="nm">{it.name} <span style={{color:'var(--dusk)'}}>¥{it.price}</span></div>
+	    {!pick && D.SHOP.map(it=>{
+	      const price=it.qingyun? it.price+(state.qingyunUsed||0)*200 : it.price;
+	      const locked=it.perTermOnce && state.qingyunThisTerm;
+	      return(<div key={it.id} className="shop-item">
+	        <img className="shop-icon" src={uiPath(it.id)} alt={`${it.name}道具`} onError={e=>{e.target.style.display='none';}}/>
+	        <div className="info"><div className="nm">{it.name} <span style={{color:'var(--dusk)'}}>¥{price}</span>{it.qingyun&&<span style={{fontSize:10,color:'var(--soft)'}}> ·每学期限1次</span>}</div>
 	          <div className="ds">{it.desc} · {it.note}</div></div>
-        <button className="btn small warm" disabled={state.fund<it.price} onClick={()=>setPick(it)}>买给…</button>
-      </div>
-    ))}
+        <button className="btn small warm" disabled={state.fund<price||locked} onClick={()=>setPick(it)}>{locked?'本学期已用':'买给…'}</button>
+      </div>);
+    })}
     {pick && <div>
       <div style={{margin:'4px 0 10px',fontSize:13}}>「{pick.name}」买给谁？{pick.onlyTalent&&<span style={{color:'var(--red)'}}>（仅限已显示天赋）</span>}</div>
       {alive.map(s=>{
@@ -1283,14 +1544,19 @@ function VisitPicker({state,onPick,onClose}){
   const [sel,setSel]=useState(null);
   const Bar=({label,v,max,color})=>(<div className="attr-line"><span>{label}</span>
     <div className="bar"><i style={{width:(v/max*100)+'%',background:color}}/></div><b>{Math.round(v)}{max===10?'/10':''}</b></div>);
+	  const alive=state.students.filter(s=>!s.dropped);
+	  const out=alive.filter(s=>s.study>=D.WIN).length;
+	  const risk=alive.filter(atRisk).length;
 	  return(<div className="modal-bg" onClick={onClose}><div className="modal log-modal" onClick={e=>e.stopPropagation()}>
     <h3>📔 班级日志 <button className="btn small ghost" onClick={onClose}>✕</button></h3>
+    {!sel && <div className="predict-bar">目前已达标 <b>{out}</b>/{alive.length} 人走出大山（学习≥{D.WIN}）{risk>0 && <span style={{color:'var(--red)'}}> · ⚠ {risk} 人快撑不住</span>}</div>}
     {!sel && state.students.map(s=>(
       <div key={s.id} className="stu-row" onClick={()=>setSel(s)}>
         <Avatar seed={s.id} size={38}/>
         <div style={{flex:1}}><b style={{fontSize:14}}>{s.name}</b>
+          {atRisk(s)&&<span style={{color:'var(--red)',fontSize:11,marginLeft:5}}>⚠濒临辍学</span>}
           <span style={{fontSize:11.5,color:'var(--soft)',marginLeft:6}}>
-            {s.dropped?'已离开':(s.study>=D.WIN?'✅已走出大山':'学习'+Math.round(s.study))}</span></div>
+            {s.dropped?'已离开':(s.study>=D.WIN?'✅已走出大山':'距大山还差 '+toGo(s))}</span></div>
         <span style={{fontSize:12}}>{s.talentShown&&D.TALENTS[s.talent].ico}</span>
       </div>
     ))}
@@ -1303,6 +1569,8 @@ function VisitPicker({state,onPick,onClose}){
       <Bar label="压力值" v={sel.press} max={100} color="#5B7FA0"/>
       <Bar label="家庭压迫" v={sel.fam} max={100} color="#8a5a44"/>
       <Bar label="信任" v={sel.trust} max={100} color="#C99A2E"/>
+      <div className="togo">{sel.dropped?'已离开学校':(sel.study>=D.WIN?'✅ 已走出大山':<span>距走出大山还差 <b>{toGo(sel)}</b> 学习值</span>)}</div>
+      {atRisk(sel) && <div className="togo" style={{color:'var(--red)'}}>⚠ 家庭压迫高、信任低，再不家访就要辍学了</div>}
       <div style={{fontSize:12.5,background:'var(--paper)',borderRadius:8,padding:'8px 10px',marginTop:8,lineHeight:1.6}}>{sel.per}</div>
       <button className="btn small ghost" style={{marginTop:10}} onClick={()=>setSel(null)}>返回</button>
     </div>}
@@ -1358,47 +1626,172 @@ function StudentDetail({student, onClose}){
       <div className="label">天赋 · 兴趣</div>
       <div className="detail-blurb" style={{background:'transparent',padding:'0 0 4px 0'}}>
         {student.talentShown
-          ? <span>✨ {talentIco} <b>{talentName}</b>天赋已显现</span>
+          ? <span>✨ {talentIco} <b>{talentName}</b>天赋已显现 <span style={{color:'var(--rice)',fontSize:11}}>· 商店解锁「天赋装备/平步青云」</span></span>
           : <span style={{color:'var(--soft)'}}>🔒 天赋尚未显现，多私聊/观察可解锁</span>}
       </div>
       <Bar label="学习值" v={student.study} max={100} color="#C25B4E"/>
       <Bar label="兴趣值" v={student.interest} max={10} color="#7BA05B"/>
+      <div className="togo">{student.dropped?'':(student.study>=D.WIN?'✅ 已走出大山':<span>距走出大山还差 <b>{toGo(student)}</b> 学习值</span>)}</div>
     </div>
 
     <div className="detail-section">
       <div className="label">当前状态</div>
       <Bar label="压力值" v={student.press} max={100} color="#5B7FA0"/>
       <Bar label="信任" v={student.trust} max={100} color="#C99A2E"/>
+      {atRisk(student) && <div className="togo" style={{color:'var(--red)'}}>⚠ 家庭压迫高、信任低，再不家访就要辍学了</div>}
     </div>
 
     {student.status && <div className="detail-status">💬 {student.status}</div>}
   </div></div>);
 }
 
-/* ---- 打工小游戏：点金币 ---- */
-function Minigame({onDone,onCancel}){
-  const [coins,setCoins]=useState([]);
-  const [score,setScore]=useState(0);
-  const [time,setTime]=useState(12);
-  const areaRef=useRef(null);
-  useEffect(()=>{
-    const spawn=setInterval(()=>{
-      const id=Math.random();
-      setCoins(c=>[...c,{id,x:8+Math.random()*78,y:8+Math.random()*70,v:10+Math.floor(Math.random()*11)}]);
-      setTimeout(()=>setCoins(c=>c.filter(x=>x.id!==id)),1400);
-    },420);
-    const tick=setInterval(()=>setTime(t=>{ if(t<=1){clearInterval(tick);clearInterval(spawn);} return t-1; }),1000);
-    return()=>{clearInterval(spawn);clearInterval(tick);};
-  },[]);
-  useEffect(()=>{ if(time<=0){ const fund=Math.min(200, 40+score); setTimeout(()=>onDone(fund),300);} },[time]);
-  const grab=(c,e)=>{ setScore(s=>s+c.v); setCoins(cs=>cs.filter(x=>x.id!==c.id)); window.AUDIO&&AUDIO.sfx('coin'); window.FX&&FX.floatAt(e,'+'+c.v,'#D9A441'); };
+/* ================= 打工：四种乡土零工 + 三选一调度 ================= */
+function WorkHub({onDone,onCancel}){
+  const [job,setJob]=useState(null);
+  const [choices]=useState(()=>[...D.JOBS].sort(()=>Math.random()-0.5).slice(0,3));
+  if(job){
+    const G={sell:SellGame,water:WaterGame,harvest:HarvestGame,couplet:CoupletGame}[job.id];
+    return <G onDone={onDone} onCancel={onCancel}/>;
+  }
   return(<div className="stage">
-    <div className="room-title">点金币赚基金！手快有，慢了就没了（保底 ¥40）</div>
-    <div className="mini" ref={areaRef}>
-      <div className="mini-hud"><span>⏱ {time}s</span><span>💰 {Math.min(200,40+score)}</span></div>
-      {coins.map(c=>(<div key={c.id} className="coin" style={{left:c.x+'%',top:c.y+'%'}} onPointerDown={(e)=>grab(c,e)}>¥</div>))}
+    <h2 className="serif" style={{textAlign:'center',fontSize:18,marginBottom:4}}>找个零工赚点基金</h2>
+    <p className="room-title">挑一样干（完成才扣 1 体力，中途放弃不扣）</p>
+    <div className="cards">
+      {choices.map(j=>(<div key={j.id} className="tcard" onClick={()=>{window.AUDIO&&AUDIO.sfx('card');setJob(j);}}>
+        <div style={{fontSize:32,textAlign:'center',marginBottom:2}}>{j.ico}</div>
+        <h4 style={{textAlign:'center'}}>{j.name}</h4><p>{j.desc}</p></div>))}
     </div>
-    <div style={{textAlign:'center',marginTop:8}}><button className="btn small ghost" onClick={onCancel}>放弃打工</button></div>
+    <div style={{textAlign:'center',marginTop:12}}><button className="btn small ghost" onClick={onCancel}>不打工了</button></div>
+  </div>);
+}
+
+/* 集市卖菜：拖滑块凑出找零（精准拖动+心算，5单） */
+function SellGame({onDone,onCancel}){
+  const TOTAL=5;
+  const gen=()=>{ const cost=2+Math.floor(Math.random()*17); const pay=[10,20,50].find(b=>b>cost)||50; return {cost,pay,change:pay-cost}; };
+  const [q,setQ]=useState(gen); const [round,setRound]=useState(1);
+  const [val,setVal]=useState(0); const [score,setScore]=useState(0); const [combo,setCombo]=useState(0); const [lock,setLock]=useState(false);
+  const scoreRef=useRef(0);
+  const submit=(e)=>{ if(lock) return; setLock(true);
+    const diff=Math.abs(val-q.change);
+    let g=0;
+    if(diff===0){ g=25+combo*5; setCombo(c=>c+1); window.AUDIO&&AUDIO.sfx('coin'); window.FX&&FX.floatAt(e,'正好！+'+g,'#7BA05B'); }
+    else if(diff<=2){ g=10; setCombo(0); window.AUDIO&&AUDIO.sfx('up'); window.FX&&FX.floatAt(e,'差一点 +'+g,'#C99A2E'); }
+    else { setCombo(0); window.AUDIO&&AUDIO.sfx('down'); window.FX&&FX.floatAt(e,'找错了','#C25B4E'); }
+    scoreRef.current+=g; setScore(scoreRef.current);
+    setTimeout(()=>{ if(round>=TOTAL) onDone(Math.min(200,20+scoreRef.current)); else { setRound(r=>r+1); setQ(gen()); setVal(0); setLock(false);} },720);
+  };
+  return(<div className="stage">
+    <div className="room-title">第 {round}/{TOTAL} 单 · 拖滑块凑出找零再确认（连击 {combo}）</div>
+    <div className="work-card">
+      <div className="work-q">顾客买菜 <b>¥{q.cost}</b>，给了 <b>¥{q.pay}</b><br/>把找零拨到正确数目</div>
+      <div className="slider-val">¥{val}</div>
+      <input className="work-slider" type="range" min="0" max="50" value={val} disabled={lock}
+        onChange={e=>setVal(+e.target.value)}/>
+      <button className="btn warm" style={{marginTop:14,minWidth:120}} disabled={lock} onClick={submit}>确认找零</button>
+      <div className="work-score">已赚 ¥{Math.min(200,20+score)}</div>
+    </div>
+    <div style={{textAlign:'center',marginTop:10}}><button className="btn small ghost" onClick={onCancel}>不干了</button></div>
+  </div>);
+}
+
+/* 挑水浇园：长按蓄力，水满到刻度松手（按住—松开，5次） */
+function WaterGame({onDone,onCancel}){
+  const TOTAL=5;
+  const [attempt,setAttempt]=useState(1); const [power,setPower]=useState(0);
+  const [target,setTarget]=useState(()=>{const lo=45+Math.floor(Math.random()*30);return {lo,hi:lo+14};});
+  const [score,setScore]=useState(0); const [lock,setLock]=useState(false); const [holding,setHolding]=useState(false);
+  const powerRef=useRef(0); const scoreRef=useRef(0); const timer=useRef(null);
+  const start=()=>{ if(lock||holding) return; setHolding(true); powerRef.current=0; setPower(0);
+    timer.current=setInterval(()=>{ powerRef.current=Math.min(100,powerRef.current+2.6); setPower(powerRef.current); if(powerRef.current>=100){clearInterval(timer.current);} },28);
+  };
+  const release=(e)=>{ if(!holding||lock) return; setHolding(false); clearInterval(timer.current); setLock(true);
+    const p=powerRef.current; const inZone=p>=target.lo&&p<=target.hi;
+    let g=0;
+    if(inZone){ g=34; window.AUDIO&&AUDIO.sfx('coin'); window.FX&&FX.floatAt(e,'满了！+'+g,'#5B7FA0'); }
+    else { const d=Math.min(Math.abs(p-target.lo),Math.abs(p-target.hi)); g=Math.max(0,16-Math.floor(d/3)); window.AUDIO&&AUDIO.sfx(g>0?'up':'down'); window.FX&&FX.floatAt(e,g>0?('洒了点 +'+g):'空了','#C99A2E'); }
+    scoreRef.current+=g; setScore(scoreRef.current);
+    setTimeout(()=>{ if(attempt>=TOTAL) onDone(Math.min(200,30+scoreRef.current)); else { setAttempt(a=>a+1); setPower(0); powerRef.current=0; const lo=42+Math.floor(Math.random()*34); setTarget({lo,hi:lo+14}); setLock(false);} },640);
+  };
+  useEffect(()=>()=>clearInterval(timer.current),[]);
+  return(<div className="stage">
+    <div className="room-title">第 {attempt}/{TOTAL} 桶 · 按住井绳蓄力，水到绿区就松手</div>
+    <div className="water-wrap">
+      <div className="water-gauge">
+        <div className="water-target" style={{bottom:target.lo+'%',height:(target.hi-target.lo)+'%'}}/>
+        <div className="water-fill" style={{height:power+'%'}}/>
+        <div className="water-mark" style={{bottom:'calc('+power+'% - 1px)'}}/>
+      </div>
+      <button className="water-rope" disabled={lock}
+        onPointerDown={start} onPointerUp={release} onPointerLeave={release}>
+        {holding?'松手！':'按住蓄力'}
+      </button>
+      <div className="work-score">已赚 ¥{Math.min(200,30+score)}</div>
+    </div>
+    <div style={{textAlign:'center',marginTop:10}}><button className="btn small ghost" onClick={onCancel}>不干了</button></div>
+  </div>);
+}
+
+/* 农忙接稻：拖动竹筐接落下的稻捆、躲烂稻（拖动+落物，~16秒） */
+function HarvestGame({onDone,onCancel}){
+  const [items,setItems]=useState([]); const [score,setScore]=useState(0); const [time,setTime]=useState(16); const [bx,setBx]=useState(50);
+  const scoreRef=useRef(0); const bxRef=useRef(50); const areaRef=useRef(null);
+  const move=(e)=>{ const r=areaRef.current&&areaRef.current.getBoundingClientRect(); if(!r) return;
+    const cx=(e.touches&&e.touches[0]?e.touches[0].clientX:e.clientX); const p=E.clamp(((cx-r.left)/r.width)*100,8,92); bxRef.current=p; setBx(p); };
+  useEffect(()=>{
+    let nid=0;
+    const spawn=setInterval(()=>{ setItems(a=>[...a,{id:++nid,x:8+Math.random()*84,y:-6,bad:Math.random()<0.25,vy:2.2+Math.random()*1.6}]); },520);
+    const fall=setInterval(()=>{ setItems(a=>{ const keep=[];
+      a.forEach(it=>{ const y=it.y+it.vy;
+        if(y>=82 && y<92 && !it.caught && Math.abs(it.x-bxRef.current)<11){
+          if(it.bad){ scoreRef.current-=10; window.AUDIO&&AUDIO.sfx('down'); } else { scoreRef.current+=12; window.AUDIO&&AUDIO.sfx('coin'); }
+          setScore(scoreRef.current); return; // 接住,移除
+        }
+        if(y<100) keep.push({...it,y});
+      });
+      return keep; }); },55);
+    const tick=setInterval(()=>setTime(t=>{ if(t<=1){clearInterval(tick);clearInterval(spawn);clearInterval(fall);} return t-1; }),1000);
+    return()=>{clearInterval(spawn);clearInterval(fall);clearInterval(tick);};
+  },[]);
+  useEffect(()=>{ if(time<=0) setTimeout(()=>onDone(Math.min(200,30+Math.max(0,scoreRef.current))),300); },[time]);
+  return(<div className="stage">
+    <div className="room-title">拖动竹筐 🧺 接稻捆 🌾(+12)，躲开烂稻 🥀(-10)！保底 ¥30</div>
+    <div className="mini" ref={areaRef} onPointerMove={move} onTouchMove={move}>
+      <div className="mini-hud"><span>⏱ {time}s</span><span>💰 {Math.min(200,30+Math.max(0,score))}</span></div>
+      {items.map(it=>(<div key={it.id} className="fall-item" style={{left:it.x+'%',top:it.y+'%'}}>{it.bad?'🥀':'🌾'}</div>))}
+      <div className="basket" style={{left:bx+'%'}}>🧺</div>
+    </div>
+    <div style={{textAlign:'center',marginTop:8}}><button className="btn small ghost" onClick={onCancel}>不干了</button></div>
+  </div>);
+}
+
+/* 写春联：时机条扫到甜区时下笔（看时机，6笔，甜区渐窄） */
+function CoupletGame({onDone,onCancel}){
+  const STROKES=6;
+  const [stroke,setStroke]=useState(1); const [marker,setMarker]=useState(0);
+  const [hits,setHits]=useState(0); const [combo,setCombo]=useState(0); const [lock,setLock]=useState(false);
+  const mRef=useRef(0); const dir=useRef(1); const hitsRef=useRef(0); const anim=useRef(null);
+  const zoneW=Math.max(14,30-stroke*2); const zoneLo=Math.max(6,50-zoneW/2+(stroke%2?6:-6)); const zoneHi=zoneLo+zoneW;
+  useEffect(()=>{ anim.current=setInterval(()=>{ let m=mRef.current+dir.current*2.4; if(m>=100){m=100;dir.current=-1;} if(m<=0){m=0;dir.current=1;} mRef.current=m; setMarker(m); },26);
+    return()=>clearInterval(anim.current); },[]);
+  const press=(e)=>{ if(lock) return; setLock(true);
+    const m=mRef.current; const inZone=m>=zoneLo&&m<=zoneHi;
+    if(inZone){ const g=20+combo*6; hitsRef.current+=g; setHits(hitsRef.current); setCombo(c=>c+1); window.AUDIO&&AUDIO.sfx('coin'); window.FX&&FX.floatAt(e,'好笔！+'+g,'#C99A2E'); }
+    else { setCombo(0); window.AUDIO&&AUDIO.sfx('down'); window.FX&&FX.floatAt(e,'歪了','#C25B4E'); }
+    setTimeout(()=>{ if(stroke>=STROKES) onDone(Math.min(200,20+hitsRef.current)); else { setStroke(s=>s+1); setLock(false);} },520);
+  };
+  return(<div className="stage">
+    <div className="room-title">第 {stroke}/{STROKES} 笔 · 滑到“墨韵甜区”时下笔（连击 {combo}）</div>
+    <div className="work-card" style={{background:'linear-gradient(#c25b4e,#a8463b)',color:'#fff'}}>
+      <div style={{fontSize:42,marginBottom:10}}>🧧</div>
+      <div className="couplet-bar">
+        <div className="couplet-zone" style={{left:zoneLo+'%',width:(zoneHi-zoneLo)+'%'}}/>
+        <div className="couplet-marker" style={{left:marker+'%'}}/>
+      </div>
+      <button className="btn warm" style={{marginTop:16,minWidth:120}} disabled={lock} onClick={press}>下　笔</button>
+      <div className="work-score" style={{color:'#ffe89a'}}>已赚 ¥{Math.min(200,20+hits)}</div>
+    </div>
+    <div style={{textAlign:'center',marginTop:8}}><button className="btn small ghost" onClick={onCancel}>不干了</button></div>
   </div>);
 }
 
@@ -1410,7 +1803,7 @@ function Minigame({onDone,onCancel}){
     <div className="cards">
 	      {drawn.map(c=>{const cat=D.CATS[c.cat];
 	        const skin=TASK_SKIN[c.cat]||TASK_SKIN.study;
-	        return(<div key={c.id} className="tcard" style={{backgroundImage:`url("${uiPath(skin)}")`}} onClick={()=>onPick(c)}>
+        return(<div key={c.id} className="tcard" style={{backgroundImage:`url("${uiPath(skin)}")`}} onClick={()=>{window.AUDIO&&AUDIO.sfx('card');onPick(c);}}>
 	          <span className="cat" style={{background:cat.color}}>{cat.name}</span>
 	          <h4>{c.title}</h4><p>{c.desc}</p>
 	          <div className="fx">
@@ -1423,6 +1816,21 @@ function Minigame({onDone,onCancel}){
 }
 
 /* ---- 学期结算 ---- */
+	/* ---- 学期突发事件（开局决策）---- */
+	function TermEvent({event,onResolve}){
+	  return(<div className="stage">
+	    <h2 className="serif" style={{textAlign:'center',fontSize:17,marginBottom:8}}>⚡ 突发 · {event.title}</h2>
+	    <div className="settle-scene" style={{backgroundImage:`url("${scenePath(event.scene)}")`}}>
+	      <div className="dlg-box" style={{margin:'0 auto',maxWidth:560,width:'100%'}}>
+	        <div className="dlg-text">{event.desc}</div>
+	      </div>
+	    </div>
+	    <div className="choices" style={{maxWidth:560,margin:'14px auto 0'}}>
+	      {event.opts.map((o,i)=><button key={i} className="choice" onClick={()=>{window.AUDIO&&AUDIO.sfx('page');onResolve(o);}}>{o.t}</button>)}
+	    </div>
+	  </div>);
+	}
+
 	function Settle({state,onContinue}){
 	  const evt=typeof state.pendingEvent==='string'?{text:state.pendingEvent,scene:'ending_office'}:(state.pendingEvent||{text:'这一学期安静地过去了。',scene:'ending_office'});
 	  useEffect(()=>{ if((state.log||[]).some(l=>String(l).indexOf('❌')>=0)){ window.AUDIO&&AUDIO.sfx('drop'); window.FX&&FX.shake(); window.FX&&FX.flash('rgba(80,80,90,.45)'); } },[]);
@@ -1644,6 +2052,19 @@ function App(){
     AUDIO.bgm(track);
   },[screen,state&&state.phase,state&&state.dialogue&&state.dialogue.kind]);
 
+  // 进入教室时：①新手提示(仅第1学期)②对濒临辍学的孩子提醒(每学期一次)
+  const riskTerm=useRef(0); const tutShown=useRef(false);
+  useEffect(()=>{
+    if(screen==='game' && state && state.phase==='classroom'){
+      if(state.term===1 && !tutShown.current){ tutShown.current=true;
+        setTimeout(()=>toast('💡 先用 KFC/私聊把"兴趣"养到5以上，兴趣越高，灌学习越快'),700); }
+      if(riskTerm.current!==state.term){ riskTerm.current=state.term;
+        const risk=state.students.filter(atRisk);
+        if(risk.length) setTimeout(()=>toast(`⚠ ${risk.map(s=>s.name).join('、')} 快撑不住了，去家访`),300);
+      }
+    }
+  },[screen,state&&state.phase,state&&state.term]);
+
   if(screen==='title' || !state){
     const has=E.isValidSave(E.store.get(SAVE_KEY));
     return(<div className="app"><div className="titlepage">
@@ -1661,7 +2082,7 @@ function App(){
   if(state.phase==='ending') return <Ending result={state.roundResult} onRestart={()=>{E.store.del(SAVE_KEY);dispatch({type:'NEW'});setScreen('title');}}/>;
 
   return(<div className="app">
-    <Hud state={state} onShop={()=>setPanel('shop')} onLog={()=>setPanel('log')}/>
+    <Hud state={state} onShop={()=>setPanel('shop')} onLog={()=>setPanel('log')} onSettings={()=>setPanel('settings')}/>
 
     {state.phase==='classroom' && <>
       <Classroom state={state} dispatch={dispatch} toast={toast}/>
@@ -1674,7 +2095,10 @@ function App(){
 	        onFreeReply={(state.dialogue.kind==='chat'||state.dialogue.kind==='visit')?freeReply:null} onContinue={continueDialogue} replying={replying}/>}
 
     {state.phase==='minigame' &&
-      <Minigame onDone={(amt)=>{dispatch({type:'WORK_DONE',amount:amt});toast(`打工赚了¥${amt}`);}} onCancel={()=>dispatch({type:'CANCEL_MINIGAME'})}/>}
+      <WorkHub onDone={(amt)=>{dispatch({type:'WORK_DONE',amount:amt});toast(`打工赚了¥${amt}`);}} onCancel={()=>dispatch({type:'CANCEL_MINIGAME'})}/>}
+
+    {state.phase==='termevent' && state.termEvent &&
+      <TermEvent event={state.termEvent} onResolve={(opt)=>dispatch({type:'RESOLVE_TERM_EVENT',opt})}/>}
 
     {state.phase==='taskcard' && state.drawn &&
       <TaskCard drawn={state.drawn} onPick={(c)=>dispatch({type:'PICK_CARD',card:c})}/>}
@@ -1687,6 +2111,7 @@ function App(){
     {panel==='log' && <ClassLog state={state} onClose={()=>setPanel(null)}/>}
     {panel==='chatpick' && <ChatPicker state={state} onPick={onPickChat} onClose={()=>setPanel(null)}/>}
     {panel==='visitpick' && <VisitPicker state={state} onPick={onPickVisit} onClose={()=>setPanel(null)}/>}
+    {panel==='settings' && <Settings onClose={()=>setPanel(null)}/>}
 
     {toasts.map(t=><div key={t.id} className="toast">{t.msg}</div>)}
   </div>);

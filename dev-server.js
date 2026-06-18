@@ -34,7 +34,10 @@ const MIME = {
   '.jpg':'image/jpeg',
   '.jpeg':'image/jpeg',
   '.svg':'image/svg+xml',
-  '.ico':'image/x-icon'
+  '.ico':'image/x-icon',
+  '.mp3':'audio/mpeg',
+  '.ogg':'audio/ogg',
+  '.wav':'audio/wav'
 };
 
 function send(res, status, body, headers){
