@@ -144,14 +144,20 @@ function sanitizeResult(type, result, p){
 
 function buildPrompt(type, p){
 	  if(type === 'chat'){
+	    const scene = p.scene || null;
+	    const sceneBlock = scene ? `本次私聊必须围绕固定场景「${scene.title}」展开。
+学生先说:${scene.lead}
+本地示例选项:${(scene.opts||[]).map(o=>`${o.type}:${o.t}`).join('；')}` : '本次私聊没有固定场景,按学生当前处境自然生成。';
 	    return `学生:${p.name}。性格:${p.per}。家庭:${p.family}。天赋方向:${p.talent||'未知'}。
 当前学期:${p.term||1}。当前数值:信任${p.trust}/100,学习兴趣${p.interest}/10,学习${p.study||0}/100,压力${p.press||0}/100,家庭压迫${p.fam||0}/100。
 最近班级日志:${(p.recentLog||[]).join('；')||'暂无'}。
 该角色独立人格知识库:${personaBlock(p)}
 该角色历史记忆:${memoryBlock(p)}
+${sceneBlock}
 					请生成"老师私聊该学生"的文游式开场,后续会由玩家用选项或输入继续推进。
 					要求:
 					- 必须优先遵守该角色人格知识库,保持这个学生的说话方式、恐惧、需求和家庭处境。
+					- 如果提供了固定场景,lines 必须回应该场景,不要另起话题。
 					- 必须参考历史记忆,如果过去老师说过承诺或发生过事件,这次对白要自然延续,不要像第一次见面。
 					- teacherOpen 是老师主动发起私聊的第一句话,要像班主任自然关心,不要太刻意。
 					- lines 必须只有 1 个元素,只生成学生对老师开场后的回应,不要在 lines 里生成老师台词。
@@ -162,6 +168,7 @@ function buildPrompt(type, p){
 			  1. A 安慰:顺着学生的话共情、安抚压力;
 			  2. B 施压:直接推动学生学习、带一点要求感;
 			  3. C 干扰:话题跳脱、轻松意外,可以引到兴趣爱好。
+			- 如果固定场景给了本地示例选项,三项可改写但不能改变 A/B/C 类型和场景含义。
 			- 可选:给一句更新后的学生简介 newPer(20字内)。
 				- 输出 memoryNote: 这段互动应该写入该角色长期记忆的一句话(30字内)。
 				- 输出 memorySummary: 更新后的角色对老师关系摘要(40字内)。

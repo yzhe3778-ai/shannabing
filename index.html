@@ -448,46 +448,78 @@ window.GAME_DATA = {
       per:'野性热乎,像山里撒欢的猴崽,但讲义气时特别认真', family:'爹娘拿他没办法,只盼他别学坏', tag:'闹'}
   ],
 
-  /* 私聊本地模板（AI失败兜底）。A/B/C 固定结算:
-     A 安慰 +12学习 +3兴趣 -18压力; B 施压 +18学习 -3兴趣 +18压力;
-     C 干扰 +6学习 +3兴趣 -10压力,跳脱型角色额外+8学习 */
+  CHAT_VALUE_RANGES: {
+    comfort:{studyRaw:[15,20],interest:[5,6],press:[-25,-20]},
+    pressure:{studyRaw:[20,25],interest:[-6,-5],press:[20,25]},
+    distraction:{studyRaw:[5,10],interest:[3,5],press:[-15,-10]},
+    distractionSpecial:{studyRaw:[10,15],interest:[3,5],press:[-15,-10]}
+  },
+
+  CHAT_SCENES: [
+    {id:'exam_fail',title:'考试失利',lead:'老师我数学又没及格……',
+      opts:[{type:'comfort',t:'A 安慰:没考好肯定很难受吧?一次考试代表不了什么,别太苛责自己。'},
+            {type:'pressure',t:'B 施压:知道自己没考好,那打算怎么办?光难受没用,总得做点什么吧。'},
+            {type:'distraction',t:'C 干扰:说实话我每次吃小火锅的时候都在想,人为什么这么会吃。'}]},
+    {id:'exam_anxiety',title:'考前焦虑',lead:'明天考试我好紧张……',
+      opts:[{type:'comfort',t:'A 安慰:紧张是正常的,说明你在乎。今晚早点睡,明天脑子清醒比什么都有用。'},
+            {type:'pressure',t:'B 施压:紧张有用吗?你复习了这么久,就差最后一步了,稳住。'},
+            {type:'distraction',t:'C 干扰:你知道吗,紧张的时候吃颗糖会好一点。虽然我也不知道科学依据在哪。'}]},
+    {id:'homework_delay',title:'作业拖延',lead:'作业好多不想动……',
+      opts:[{type:'comfort',t:'A 安慰:累了就歇会儿,不差这一时半会。状态好了效率反而更高。'},
+            {type:'pressure',t:'B 施压:不想动就不动?那明天交作业的时候怎么办?先把本子打开,动笔再说。'},
+            {type:'distraction',t:'C 干扰:你知道吗,我每次不想动的时候就想,小龙虾怎么这么好吃。'}]},
+    {id:'weak_subject',title:'偏科严重',lead:'英语我就是学不好……',
+      opts:[{type:'comfort',t:'A 安慰:每个人都有不擅长的东西,这不丢人。我们不跟别人比,跟自己比就好。'},
+            {type:'pressure',t:'B 施压:学不好?那你每天花了多少时间在英语上?先给我看看你的时间账。'},
+            {type:'distraction',t:'C 干扰:我学英语最熟的一句是 This is a pen。你至少比这个强吧?'}]},
+    {id:'low_mood',title:'情绪低落',lead:'老师我心情不好……',
+      opts:[{type:'comfort',t:'A 安慰:心情不好就不勉强自己开心,我陪着你。想说什么就说,不想说就不说。'},
+            {type:'pressure',t:'B 施压:我知道你心情不好,但一直陷在里面也不是办法。做点什么转移一下注意力?'},
+            {type:'distraction',t:'C 干扰:其实我每次心情不好的时候,就会想,这个世界上到底是谁发明了作业。'}]},
+    {id:'self_doubt',title:'自我怀疑',lead:'我觉得我什么都不行……',
+      opts:[{type:'comfort',t:'A 安慰:你这样说我很心疼。你只是暂时没看到自己的好,不代表你没有。'},
+            {type:'pressure',t:'B 施压:不行?那你跟我说说,你为行付出了多少努力?别急着否定自己。'},
+            {type:'distraction',t:'C 干扰:你知道吗?一只龙虾从出生到上桌,可能要经历很多事情。但它不会觉得自己不行。'}]}
+  ],
+
+  /* 私聊学生本地模板（场景池不可用时兜底）。A/B/C 使用上方范围结算。 */
 	  CHAT: {
     damao:{lead:'大毛把速写本往身后藏了藏:"老师……我这画,能当饭吃吗?"',
-      opts:[{type:'comfort',t:'A 安慰:画能开路,别急着否定',fx:{studyRaw:12,interest:3,press:-18}},
-            {type:'pressure',t:'B 施压:想走画画路,字和题也得稳',fx:{studyRaw:18,interest:-3,press:18}},
-            {type:'distraction',t:'C 干扰:给粉笔也画个小火锅?',fx:{studyRaw:6,interest:3,press:-10}}]},
+      opts:[{type:'comfort',t:'A 安慰:画能开路,别急着否定'},
+            {type:'pressure',t:'B 施压:想走画画路,字和题也得稳'},
+            {type:'distraction',t:'C 干扰:给粉笔也画个小火锅?'}]},
     xiaohua:{lead:'小花攥着半截彩笔,声音细得像蚊子:"我画的……是不是很幼稚?"',
-      opts:[{type:'comfort',t:'A 安慰:幼稚不丢人,老师认真看',fx:{studyRaw:12,interest:3,press:-18}},
-            {type:'pressure',t:'B 施压:想画得好,今晚先补一页题',fx:{studyRaw:18,interest:-3,press:18}},
-            {type:'distraction',t:'C 干扰:给彩笔起个响亮名字吧',fx:{studyRaw:6,interest:3,press:-10}}]},
+      opts:[{type:'comfort',t:'A 安慰:幼稚不丢人,老师认真看'},
+            {type:'pressure',t:'B 施压:想画得好,今晚先补一页题'},
+            {type:'distraction',t:'C 干扰:给彩笔起个响亮名字吧'}]},
     chouwa:{lead:'丑娃抱着破足球咧嘴:"老师!我是不是跑得比谁都快?"',
-      opts:[{type:'comfort',t:'A 安慰:你跑得快,心也别慌',fx:{studyRaw:12,interest:3,press:-18}},
-            {type:'pressure',t:'B 施压:跑得快也得把课本追上',fx:{studyRaw:18,interest:-3,press:18}},
-            {type:'distraction',t:'C 干扰:假装课本是球门,冲过去',fx:{studyRaw:14,interest:3,press:-10}}]},
+      opts:[{type:'comfort',t:'A 安慰:你跑得快,心也别慌'},
+            {type:'pressure',t:'B 施压:跑得快也得把课本追上'},
+            {type:'distraction',t:'C 干扰:假装课本是球门,冲过去'}]},
     xingxing:{lead:'星星扶了扶缠着胶布的眼镜,小声说:"老师,我唱歌……我爹说没出息。"',
-      opts:[{type:'comfort',t:'A 安慰:喜欢唱歌不是错',fx:{studyRaw:12,interest:3,press:-18}},
-            {type:'pressure',t:'B 施压:先把成绩唱稳,家里才听你说',fx:{studyRaw:18,interest:-3,press:18}},
-            {type:'distraction',t:'C 干扰:把公式当歌词哼一遍?',fx:{studyRaw:6,interest:3,press:-10}}]},
+      opts:[{type:'comfort',t:'A 安慰:喜欢唱歌不是错'},
+            {type:'pressure',t:'B 施压:先把成绩唱稳,家里才听你说'},
+            {type:'distraction',t:'C 干扰:把公式当歌词哼一遍?'}]},
     mumu:{lead:'木木慢吞吞掏出颗光滑的石头:"老师,这是运气石……分你一半运气。"',
-      opts:[{type:'comfort',t:'A 安慰:运气石我收下,你也歇口气',fx:{studyRaw:12,interest:3,press:-18}},
-            {type:'pressure',t:'B 施压:运气要配努力,今晚先写两题',fx:{studyRaw:18,interest:-3,press:18}},
-            {type:'distraction',t:'C 干扰:这石头像不像一颗土豆?',fx:{studyRaw:6,interest:3,press:-10}}]},
+      opts:[{type:'comfort',t:'A 安慰:运气石我收下,你也歇口气'},
+            {type:'pressure',t:'B 施压:运气要配努力,今晚先写两题'},
+            {type:'distraction',t:'C 干扰:这石头像不像一颗土豆?'}]},
     danzai:{lead:'蛋仔从兜里摸出半块红薯干:"老师吃!笑一笑,十年少!"',
-      opts:[{type:'comfort',t:'A 安慰:能笑是本事,也别硬撑',fx:{studyRaw:12,interest:3,press:-18}},
-            {type:'pressure',t:'B 施压:笑完把错题补了,别只会贫',fx:{studyRaw:18,interest:-3,press:18}},
-            {type:'distraction',t:'C 干扰:红薯干能不能当奖杯?',fx:{studyRaw:14,interest:3,press:-10}}]},
+      opts:[{type:'comfort',t:'A 安慰:能笑是本事,也别硬撑'},
+            {type:'pressure',t:'B 施压:笑完把错题补了,别只会贫'},
+            {type:'distraction',t:'C 干扰:红薯干能不能当奖杯?'}]},
     goushen:{lead:'狗剩低着头:"老师,农忙了……我可能要请几天假。"',
-      opts:[{type:'comfort',t:'A 安慰:农忙我懂,书也不能断',fx:{studyRaw:12,interest:3,press:-18}},
-            {type:'pressure',t:'B 施压:请假可以,功课必须补回来',fx:{studyRaw:18,interest:-3,press:18}},
-            {type:'distraction',t:'C 干扰:把锄头当铅笔比划一下?',fx:{studyRaw:14,interest:3,press:-10}}]},
+      opts:[{type:'comfort',t:'A 安慰:农忙我懂,书也不能断'},
+            {type:'pressure',t:'B 施压:请假可以,功课必须补回来'},
+            {type:'distraction',t:'C 干扰:把锄头当铅笔比划一下?'}]},
     ahua:{lead:'阿花绞着褪色的红头绳,半天才开口:"老师……女娃,真的能走出去吗?"',
-      opts:[{type:'comfort',t:'A 安慰:能走,老师会陪你扛一段',fx:{studyRaw:12,interest:3,press:-18}},
-            {type:'pressure',t:'B 施压:想走出去,今天这页必须写完',fx:{studyRaw:18,interest:-3,press:18}},
-            {type:'distraction',t:'C 干扰:红头绳也能当胜利旗',fx:{studyRaw:6,interest:3,press:-10}}]},
+      opts:[{type:'comfort',t:'A 安慰:能走,老师会陪你扛一段'},
+            {type:'pressure',t:'B 施压:想走出去,今天这页必须写完'},
+            {type:'distraction',t:'C 干扰:红头绳也能当胜利旗'}]},
     matui:{lead:'马腿龇着缺角的门牙凑过来:"老师,听说你当年比我还皮?"',
-      opts:[{type:'comfort',t:'A 安慰:皮不是坏事,先别急着闯祸',fx:{studyRaw:12,interest:3,press:-18}},
-            {type:'pressure',t:'B 施压:聪明别浪费,把劲用到题上',fx:{studyRaw:18,interest:-3,press:18}},
-            {type:'distraction',t:'C 干扰:你要是山风,作业就是弯道',fx:{studyRaw:14,interest:3,press:-10}}]}
+      opts:[{type:'comfort',t:'A 安慰:皮不是坏事,先别急着闯祸'},
+            {type:'pressure',t:'B 施压:聪明别浪费,把劲用到题上'},
+            {type:'distraction',t:'C 干扰:你要是山风,作业就是弯道'}]}
 	  },
 
 	  /* 私聊/家访结算结果库：AI 只返回 outcomeTag，本地规则决定数值，方便平衡 */
@@ -1405,6 +1437,50 @@ function seatStatusTitle(s){
 			  if(stu.study<=10) return `${stu.name},刚起步慢慢来,不用急。老师陪你理一理。`;
 			  return `${stu.name},今天找你随便聊聊,最近有啥新鲜事吗?`;
 			}
+			function chatRangeFor(stu,type){
+			  const ranges=D.CHAT_VALUE_RANGES||{};
+			  const key=type==='distraction' && stu && stu.likesDistraction ? 'distractionSpecial' : type;
+			  return ranges[key] || ranges.comfort || {};
+			}
+			function attachChatRange(stu,opt){
+			  if(!opt || !opt.type) return opt;
+			  return {...opt,fxRange:chatRangeFor(stu,opt.type)};
+			}
+			function rollRangeValue(v){
+			  if(Array.isArray(v)) return E.ri(Math.min(v[0],v[1]),Math.max(v[0],v[1]));
+			  return Number(v||0);
+			}
+			function rollFxRange(range){
+			  const fx={};
+			  Object.keys(range||{}).forEach(k=>{ fx[k]=rollRangeValue(range[k]); });
+			  return fx;
+			}
+			function materializeChatOption(stu,opt){
+			  if(!opt) return opt;
+			  if(opt.fx) return opt;
+			  if(opt.fxRange) return {...opt,fx:rollFxRange(opt.fxRange)};
+			  if(opt.type) return {...opt,fx:rollFxRange(chatRangeFor(stu,opt.type))};
+			  return opt;
+			}
+			function pickChatScene(stu,state){
+			  const scenes=D.CHAT_SCENES||[];
+			  if(!scenes.length) return null;
+			  const idx=((state&&state.term)||1)+(stu.seat||0)+(stu.chatCount||0);
+			  return scenes[idx%scenes.length];
+			}
+			function buildChatTemplate(stu,state){
+			  const scene=pickChatScene(stu,state);
+			  if(scene){
+			    return {
+			      lead:scene.lead,
+			      sceneId:scene.id,
+			      sceneTitle:scene.title,
+			      opts:(scene.opts||[]).map(o=>attachChatRange(stu,o))
+			    };
+			  }
+			  const fallback=D.CHAT[stu.id];
+			  return {...fallback, opts:(fallback.opts||[]).map(o=>attachChatRange(stu,o))};
+			}
 
 /* ---- 头像：优先使用项目内 QQ 人切片，缺图时退回种子化 SVG ---- */
 function FallbackAvatar({seed,size}){
@@ -1704,7 +1780,7 @@ function ActionBar({state,dispatch,onChat,onVisit,onNext,toast}){
 				            </div>
 				          </div> : <>
 					          {dialogue.opts && dialogue.opts.length>0 && <div className="chat-suggestions">
-					            {dialogue.opts.map((o,i)=><button key={i} className="chat-chip" disabled={replying}
+					            {dialogue.opts.map((o,i)=><button key={i} className="chat-chip" disabled={replying} title={o.t}
 					              onClick={()=>onFreeReply?onFreeReply(o.t,lines,o):(onResolve&&onResolve(o))}>{o.t}</button>)}
 					          </div>}
 					          <div className="chat-input-row">
@@ -2199,13 +2275,14 @@ function App(){
 	  const onPickChat=async(stu)=>{
 	    if(!isActive(stu)){ toast('这个学生已经不能参与私聊'); return; }
 	    setPanel(null); setBusy(true);
-	    const tpl=D.CHAT[stu.id];
+	    const tpl=buildChatTemplate(stu,state);
 	    let dlg=null;
 		    const persona=await loadPersona(stu.id) || personaFallback(stu);
 		    const ai=await AI.call('chat',{
 		      id:stu.id,name:stu.name,per:stu.per,family:stu.family,
 		      talent:D.TALENTS[stu.talent].name,trust:stu.trust,interest:stu.interest,
 		      study:Math.round(stu.study),press:Math.round(stu.press),fam:Math.round(stu.fam),
+		      scene:tpl.sceneId?{id:tpl.sceneId,title:tpl.sceneTitle,lead:tpl.lead,opts:tpl.opts.map(o=>({type:o.type,t:o.t}))}:null,
 		      term:state.term,persona,memory:characterMemory(state,stu.id),
 		      recentLog:(state.log||[]).slice(-4)
 		    },15000);
@@ -2213,14 +2290,14 @@ function App(){
 	      const lead=String(ai.lead || (ai.lines&&ai.lines[0]&&(ai.lines[0].text||ai.lines[0].t)) || tpl.lead).slice(0,400);
 	      const teacherOpen={speaker:'老师',text:String(ai.teacherOpen||localTeacherOpening(stu,'chat')).slice(0,140),portraitId:'teacher',mc:true};
 	      dlg={who:stu.name,mc:false,ai:true,kind:'chat',scene:'classroom_topdown',studentId:stu.id,portraitId:stu.id,lead,
-	        phase:'running',turnCount:0,maxMessages:D.MAX_CHAT_MESSAGES,
+	        chatSceneId:tpl.sceneId,chatSceneTitle:tpl.sceneTitle,phase:'running',turnCount:0,maxMessages:D.MAX_CHAT_MESSAGES,
 	        lines:[teacherOpen,...normalizeLines(ai.lines,stu.name,lead,stu.id)].slice(-D.MAX_CHAT_MESSAGES),
 	        baseOpts:tpl.opts,memoryNote:ai.memoryNote,memorySummary:ai.memorySummary,memoryCount:(characterMemory(state,stu.id).interactions||[]).length,
-	        opts:ai.opts.slice(0,3).map((o,i)=>({...((tpl.opts&&tpl.opts[i])||{}),t:String(o.t).slice(0,40),fx:tpl.opts[i]?tpl.opts[i].fx:{trust:2},unlock:tpl.opts[i]&&tpl.opts[i].unlock,newPer:ai.newPer,memoryNote:ai.memoryNote,memorySummary:ai.memorySummary}))};
+	        opts:ai.opts.slice(0,3).map((o,i)=>({...((tpl.opts&&tpl.opts[i])||{}),t:String(o.t).slice(0,70),unlock:tpl.opts[i]&&tpl.opts[i].unlock,newPer:ai.newPer,memoryNote:ai.memoryNote,memorySummary:ai.memorySummary}))};
 	    }else{
 	      const teacherOpen={speaker:'老师',text:localTeacherOpening(stu,'chat'),portraitId:'teacher',mc:true};
 	      dlg={who:stu.name,mc:false,kind:'chat',scene:'classroom_topdown',studentId:stu.id,portraitId:stu.id,lead:tpl.lead,
-	        phase:'running',turnCount:0,maxMessages:D.MAX_CHAT_MESSAGES,
+	        chatSceneId:tpl.sceneId,chatSceneTitle:tpl.sceneTitle,phase:'running',turnCount:0,maxMessages:D.MAX_CHAT_MESSAGES,
 	        lines:[teacherOpen,{speaker:stu.name,text:tpl.lead,portraitId:stu.id,mc:false}],opts:tpl.opts,baseOpts:tpl.opts,memoryCount:(characterMemory(state,stu.id).interactions||[]).length};
 	    }
     setBusy(false);
@@ -2312,6 +2389,7 @@ function App(){
 	    if(!d||!d.studentId||replying) return;
 	    const stu=state.students.find(s=>s.id===d.studentId);
 	    if(!stu||!isActive(stu)) return;
+	    const picked=materializeChatOption(stu,pickedOpt);
 	    setReplying(true);
 	    const persona=await loadPersona(stu.id) || personaFallback(stu);
 	    const baseLines=(visibleLines&&visibleLines.length?visibleLines:normalizeLines(d.lines,d.who,d.lead,d.portraitId||d.studentId||d.who)).slice(-40);
@@ -2332,8 +2410,7 @@ function App(){
 	    const baseOpts=d.baseOpts||d.opts||[];
 		    const nextOpts=(ai&&Array.isArray(ai.opts)&&ai.opts.length?ai.opts:d.opts||[]).slice(0,3).map((o,i)=>({
 		      ...((baseOpts&&baseOpts[i])||{}),
-		      t:String(o.t||o.text||o).slice(0,40),
-		      fx:baseOpts[i]?baseOpts[i].fx:(d.kind==='visit'?{fam:-4}:{trust:2}),
+		      t:String(o.t||o.text||o).slice(0,70),
 		      unlock:baseOpts[i]&&baseOpts[i].unlock,
 		      newPer:ai&&ai.newPer,
 		      memoryNote:ai&&ai.memoryNote,
@@ -2342,15 +2419,15 @@ function App(){
 	    const nextTurn=(d.turnCount||0)+1;
 	    const nextLines=[...baseLines,teacherLine,...aiLines].slice(-(d.maxMessages||D.MAX_CHAT_MESSAGES));
 	    const ready=!!(ai&&ai.settlement&&ai.settlement.ready) || shouldForceSettle(d,nextLines,nextTurn);
-	    const choiceFx=(pickedOpt&&pickedOpt.fx) || d.lastChoiceFx || null;
+	    const choiceFx=(picked&&picked.fx) || d.lastChoiceFx || (ready&&d.kind==='chat'?rollFxRange(chatRangeFor(stu,'comfort')):null);
 	    const settlement=ready ? buildSettlement(d.kind,ai||{},stu,nextTurn,choiceFx) : null;
 	    if(settlement && !(ai&&ai.settlement&&ai.settlement.ready)) settlement.ready=true;
 	    const nextDialogue={...d,ai:!!ai,phase:settlement?'settlement':'running',turnCount:nextTurn,
 	      lines:nextLines,lead:(aiLines[0]&&aiLines[0].text)||d.lead,opts:nextOpts.length?nextOpts:d.opts,
 	      settlement,memoryNote:ai&&ai.memoryNote||d.memoryNote,memorySummary:ai&&ai.memorySummary||d.memorySummary,
 	      lastChoiceFx:choiceFx,
-	      lastChoiceType:(pickedOpt&&pickedOpt.type)||d.lastChoiceType,
-	      lastChoiceText:(pickedOpt&&pickedOpt.t)||d.lastChoiceText,
+	      lastChoiceType:(picked&&picked.type)||d.lastChoiceType,
+	      lastChoiceText:(picked&&picked.t)||d.lastChoiceText,
 	      memoryCount:(characterMemory(state,stu.id).interactions||[]).length+1};
 	    dispatch({type:'UPDATE_DIALOGUE',dialogue:nextDialogue});
 	    dispatch({type:'ADD_MEMORY',studentId:stu.id,entry:{
